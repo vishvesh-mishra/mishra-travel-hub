@@ -4,7 +4,7 @@ from flask import flash, redirect, render_template, url_for
 from sqlalchemy import case, func
 
 from app.extensions import db
-from app.models import Document, Expense, ItineraryItem, ShoppingItem, Trip
+from app.models import Document, Expense, ItineraryItem, JournalEntry, ShoppingItem, Trip
 
 from . import bp
 from .forms import DeleteItineraryItemForm, DeleteTripForm, ItineraryItemForm, TripForm
@@ -80,6 +80,12 @@ def detail(trip_id):
         .first()
     )
     expense_top_category = top_category_row[0] if top_category_row else None
+    journal_count = JournalEntry.query.filter_by(trip_id=trip.id).count()
+    recent_journal_entry = (
+        JournalEntry.query.filter_by(trip_id=trip.id)
+        .order_by(JournalEntry.entry_date.desc(), JournalEntry.id.desc())
+        .first()
+    )
     return render_template(
         "trips/detail.html",
         title=trip.name,
@@ -96,6 +102,8 @@ def detail(trip_id):
         expense_total=expense_total,
         expense_count=expense_count,
         expense_top_category=expense_top_category,
+        journal_count=journal_count,
+        recent_journal_entry=recent_journal_entry,
         today=today,
     )
 

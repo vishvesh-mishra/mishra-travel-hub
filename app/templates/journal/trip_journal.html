@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1">Journal</h1>
+      <p class="text-secondary mb-0">{{ trip.name }} · {{ trip.destination }}</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.detail', trip_id=trip.id) }}">Trip Detail</a>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('journal.create', trip_id=trip.id) }}">Add Entry</a>
+    </div>
+  </div>
+
+  {% if entries %}
+    <div class="journal-list d-grid gap-4">
+      {% for entry in entries %}
+        <article class="journal-entry">
+          <div class="d-flex flex-column flex-sm-row justify-content-between gap-3 mb-3">
+            <div>
+              <p class="text-secondary small mb-1">{{ entry.entry_date.strftime("%b %-d, %Y") }}</p>
+              <h2 class="h4 mb-0">{{ entry.title }}</h2>
+            </div>
+            <div class="d-flex flex-wrap align-items-start gap-2">
+              <a class="btn btn-outline-light btn-sm" href="{{ url_for('journal.edit', trip_id=trip.id, entry_id=entry.id) }}">Edit</a>
+              <a class="btn btn-outline-danger btn-sm" href="{{ url_for('journal.delete', trip_id=trip.id, entry_id=entry.id) }}">Delete</a>
+            </div>
+          </div>
+          {% if entry.content %}
+            <p class="journal-content preserve-lines mb-0">{{ entry.content }}</p>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <section class="page-panel">
+      <h2 class="h5 mb-2">No journal entries yet</h2>
+      <p class="text-secondary mb-3">Start writing about this trip.</p>
+      <a class="btn btn-primary" href="{{ url_for('journal.create', trip_id=trip.id) }}">Add Entry</a>
+    </section>
+  {% endif %}
+{% endblock %}

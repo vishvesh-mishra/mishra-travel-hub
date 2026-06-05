@@ -195,6 +195,32 @@
     </div>
   </section>
 
+  <section class="journal-section mb-4">
+    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-3">
+      <div>
+        <h2 class="h5 mb-1">Journal</h2>
+        <p class="text-secondary mb-0">{{ journal_count }} {{ "entry" if journal_count == 1 else "entries" }}</p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-light btn-sm" href="{{ url_for('journal.for_trip', trip_id=trip.id) }}">Manage Journal</a>
+        <a class="btn btn-primary btn-sm" href="{{ url_for('journal.create', trip_id=trip.id) }}">Add Entry</a>
+      </div>
+    </div>
+    {% if recent_journal_entry %}
+      <article class="journal-entry">
+        <p class="text-secondary small mb-1">{{ recent_journal_entry.entry_date.strftime("%b %-d, %Y") }}</p>
+        <h3 class="h5 mb-2">{{ recent_journal_entry.title }}</h3>
+        {% if recent_journal_entry.content %}
+          <p class="journal-content preserve-lines mb-0 text-secondary">{{ recent_journal_entry.content[:300] }}{% if recent_journal_entry.content | length > 300 %}…{% endif %}</p>
+        {% endif %}
+      </article>
+    {% else %}
+      <div class="page-panel">
+        <p class="text-secondary mb-0">Journal entries for this trip will appear here.</p>
+      </div>
+    {% endif %}
+  </section>
+
   <section class="page-panel mb-4">
     <h2 class="h5 mb-2">Notes</h2>
     {% if trip.notes %}

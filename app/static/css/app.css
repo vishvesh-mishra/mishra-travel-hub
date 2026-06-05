@@ -37,7 +37,8 @@ body {
 .metric-box,
 .trip-hero,
 .next-event,
-.itinerary-preview {
+.itinerary-preview,
+.journal-entry {
   padding: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 8px;
@@ -74,8 +75,22 @@ body {
 .shopping-section,
 .shopping-list,
 .expense-section,
-.expense-list {
+.expense-list,
+.journal-section {
   max-width: 920px;
+}
+
+.journal-list {
+  max-width: 760px;
+}
+
+.journal-content {
+  line-height: 1.75;
+}
+
+.journal-textarea {
+  line-height: 1.75;
+  font-size: 0.9375rem;
 }
 
 .shopping-item.is-complete {

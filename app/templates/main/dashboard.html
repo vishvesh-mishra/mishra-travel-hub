@@ -130,6 +130,35 @@
       </div>
     </div>
 
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <section class="dashboard-card h-100">
+          <p class="text-secondary mb-1">Journal</p>
+          <p class="display-6 mb-0">{{ total_journal_count }}</p>
+          <p class="text-secondary mt-3 mb-0">{{ "entry" if total_journal_count == 1 else "entries" }} logged</p>
+          {% if recent_journal_entry %}
+            <p class="small mt-3 mb-1 fw-semibold">{{ recent_journal_entry.title }}</p>
+            <p class="text-secondary small mb-0">{{ recent_journal_entry.entry_date.strftime("%b %-d, %Y") }} · {{ recent_journal_entry.trip.name }}</p>
+            <a class="btn btn-outline-light btn-sm mt-3" href="{{ url_for('journal.for_trip', trip_id=recent_journal_entry.trip_id) }}">View Journal</a>
+          {% else %}
+            <p class="text-secondary small mb-0 mt-3">Journal entries across all trips appear here.</p>
+          {% endif %}
+        </section>
+      </div>
+      <div class="col-md-6">
+        <section class="dashboard-card h-100">
+          <p class="text-secondary mb-1">Write Entry</p>
+          {% if primary_trip %}
+            <p class="h4 mb-3">{{ primary_trip.name }}</p>
+            <a class="btn btn-primary btn-sm" href="{{ url_for('journal.create', trip_id=primary_trip.id) }}">Add Journal Entry</a>
+          {% else %}
+            <p class="text-secondary mb-3">Create a trip to start writing journal entries.</p>
+            <a class="btn btn-primary btn-sm" href="{{ url_for('trips.create') }}">Add Trip</a>
+          {% endif %}
+        </section>
+      </div>
+    </div>
+
     <section class="mb-4">
       <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
         <h2 class="h5 mb-0">Active Trips</h2>

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="page-panel">
+    <h1 class="h3 mb-3">Delete Journal Entry</h1>
+    <p class="mb-1">Are you sure you want to delete <strong>{{ entry.title }}</strong>?</p>
+    <p class="text-secondary mb-4">This removes the entry from {{ trip.name }}.</p>
+
+    <form method="post" class="d-flex flex-column flex-sm-row gap-2">
+      {{ form.hidden_tag() }}
+      {{ form.submit(class="btn btn-danger") }}
+      <a class="btn btn-outline-light" href="{{ url_for('journal.for_trip', trip_id=trip.id) }}">Cancel</a>
+    </form>
+  </section>
+{% endblock %}

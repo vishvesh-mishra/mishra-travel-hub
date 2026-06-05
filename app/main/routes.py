@@ -5,7 +5,7 @@ from flask import render_template
 from sqlalchemy import and_, case, func, or_
 
 from app.extensions import db
-from app.models import Document, Expense, ItineraryItem, ShoppingItem, Trip
+from app.models import Document, Expense, ItineraryItem, JournalEntry, ShoppingItem, Trip
 
 from . import bp
 
@@ -50,6 +50,13 @@ def dashboard():
     ) or 0
     total_expense_count = Expense.query.count()
 
+    total_journal_count = JournalEntry.query.count()
+    recent_journal_entry = (
+        JournalEntry.query.join(Trip)
+        .order_by(JournalEntry.entry_date.desc(), JournalEntry.id.desc())
+        .first()
+    )
+
     return render_template(
         "main/dashboard.html",
         title="Dashboard",
@@ -63,6 +70,8 @@ def dashboard():
         primary_trip=primary_trip,
         total_expense_spend=total_expense_spend,
         total_expense_count=total_expense_count,
+        total_journal_count=total_journal_count,
+        recent_journal_entry=recent_journal_entry,
         today=today,
     )
 
