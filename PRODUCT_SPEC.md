@@ -138,3 +138,91 @@ Future Expansion:
 - Maps
 - Recommendations
 - AI travel assistant
+
+## Version 1 Scope
+
+The first release should prioritize simplicity and reliability.
+
+Required pages:
+
+- Login
+- Dashboard
+- Trips
+- Trip Detail
+- Itinerary
+- Documents
+- Shopping Lists
+- Expenses
+- Journal
+
+Authentication:
+
+- Single shared account
+- No registration page
+- Admin user created manually
+
+Database Models:
+
+Trip
+- id
+- name
+- destination
+- start_date
+- end_date
+- notes
+- created_at
+
+ItineraryItem
+- id
+- trip_id
+- date
+- time
+- title
+- description
+
+Document
+- id
+- trip_id
+- title
+- document_type
+- file_path
+- external_url
+
+ShoppingItem
+- id
+- trip_id
+- item_name
+- category
+- completed
+
+Expense
+- id
+- trip_id
+- amount
+- category
+- description
+- expense_date
+
+JournalEntry
+- id
+- trip_id
+- title
+- content
+- entry_date
+
+UI Requirements:
+
+- Responsive design
+- Works well on iPhone Safari
+- Dark mode support
+- Apple-inspired clean interface
+
+Non-Goals:
+
+- Multi-user support
+- Real-time collaboration
+- Notifications
+- Maps integration
+- AI features
+
+These may be added later.
