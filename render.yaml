@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: mishra-travel-hub
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: flask --app app init-db && gunicorn wsgi:app
+    envVars:
+      - key: FLASK_CONFIG
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        value: sqlite:////data/mishra_travel_hub.sqlite
+    disk:
+      name: sqlite-data
+      mountPath: /data
+      sizeGB: 1
