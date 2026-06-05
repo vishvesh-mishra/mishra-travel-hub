@@ -21,6 +21,7 @@ def create_app(config_name=None):
     from . import models  # noqa: F401
 
     register_blueprints(app)
+    register_commands(app)
 
     return app
 
@@ -41,3 +42,10 @@ def register_blueprints(app):
     app.register_blueprint(shopping_bp)
     app.register_blueprint(documents_bp)
     app.register_blueprint(journal_bp)
+
+
+def register_commands(app):
+    @app.cli.command("init-db")
+    def init_db():
+        db.create_all()
+        print("Initialized the database.")

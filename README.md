@@ -28,6 +28,12 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
+Initialize the SQLite database:
+
+```bash
+flask --app app.py init-db
+```
+
 Run the app:
 
 ```bash
@@ -52,15 +58,4 @@ Useful environment variables:
 
 ## Database
 
-The SQLAlchemy models are defined in `app/models.py`. To create tables locally from the Flask shell:
-
-```bash
-flask --app app.py shell
-```
-
-Then run:
-
-```python
-from app.extensions import db
-db.create_all()
-```
+The SQLAlchemy models are defined in `app/models.py`. Use `flask --app app.py init-db` to create the local SQLite tables.

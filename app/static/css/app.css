@@ -21,3 +21,57 @@ body {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
 }
+
+.trip-list {
+  max-width: 920px;
+}
+
+.trip-card,
+.itinerary-card,
+.metric-box,
+.trip-hero,
+.next-event,
+.itinerary-preview {
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.trip-hero {
+  max-width: 920px;
+  background: rgba(13, 110, 253, 0.14);
+}
+
+.trip-form {
+  max-width: 820px;
+}
+
+.itinerary-list {
+  max-width: 920px;
+}
+
+.itinerary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.preserve-lines {
+  white-space: pre-wrap;
+}
+
+@media (max-width: 575.98px) {
+  .btn {
+    width: 100%;
+  }
+
+  .itinerary-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

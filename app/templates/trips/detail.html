@@ -1,8 +1,107 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <section class="page-panel">
-    <h1 class="h3 mb-2">Trip Detail</h1>
-    <p class="text-secondary mb-0">Trip {{ trip_id }} detail route is registered. Data views will be added later.</p>
+  <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1">{{ trip.name }}</h1>
+      <p class="text-secondary mb-0">{{ trip.destination }}</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.index') }}">Trips</a>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('trips.create_itinerary_item', trip_id=trip.id) }}">Add Itinerary Item</a>
+      <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.edit', trip_id=trip.id) }}">Edit</a>
+      <a class="btn btn-outline-danger btn-sm" href="{{ url_for('trips.delete', trip_id=trip.id) }}">Delete</a>
+    </div>
+  </div>
+
+  <section class="trip-hero mb-4">
+    <div>
+      <p class="text-secondary mb-1">Countdown</p>
+      {% if countdown_days > 1 %}
+        <p class="display-6 mb-0">{{ countdown_days }} days</p>
+      {% elif countdown_days == 1 %}
+        <p class="display-6 mb-0">Tomorrow</p>
+      {% elif countdown_days == 0 %}
+        <p class="display-6 mb-0">Starts today</p>
+      {% else %}
+        <p class="display-6 mb-0">Started {{ countdown_days | abs }} days ago</p>
+      {% endif %}
+    </div>
+  </section>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="metric-box">
+        <p class="text-secondary small mb-1">Start Date</p>
+        <p class="mb-0 fw-semibold">{{ trip.start_date.strftime("%b %-d, %Y") }}</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="metric-box">
+        <p class="text-secondary small mb-1">End Date</p>
+        <p class="mb-0 fw-semibold">{{ trip.end_date.strftime("%b %-d, %Y") }}</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="metric-box">
+        <p class="text-secondary small mb-1">Duration</p>
+        <p class="mb-0 fw-semibold">{{ duration_days }} {{ "day" if duration_days == 1 else "days" }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-lg-5">
+      <section class="next-event h-100">
+        <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+          <h2 class="h5 mb-0">Next Event</h2>
+          <a class="small link-light" href="{{ url_for('trips.itinerary', trip_id=trip.id) }}">View all</a>
+        </div>
+        {% if next_itinerary_item %}
+          <p class="text-secondary small mb-1">{{ next_itinerary_item.date.strftime("%b %-d, %Y") }} at {{ next_itinerary_item.time.strftime("%I:%M %p") }}</p>
+          <p class="h4 mb-2">{{ next_itinerary_item.title }}</p>
+          {% if next_itinerary_item.description %}
+            <p class="text-secondary mb-0 preserve-lines">{{ next_itinerary_item.description }}</p>
+          {% else %}
+            <p class="text-secondary mb-0">No description added.</p>
+          {% endif %}
+        {% else %}
+          <p class="text-secondary mb-3">No upcoming itinerary items yet.</p>
+          <a class="btn btn-primary btn-sm" href="{{ url_for('trips.create_itinerary_item', trip_id=trip.id) }}">Add Itinerary Item</a>
+        {% endif %}
+      </section>
+    </div>
+    <div class="col-lg-7">
+      <section class="itinerary-preview h-100">
+        <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+          <h2 class="h5 mb-0">Upcoming Itinerary</h2>
+          <a class="small link-light" href="{{ url_for('trips.itinerary', trip_id=trip.id) }}">Manage</a>
+        </div>
+        {% if upcoming_itinerary_items %}
+          <div class="d-grid gap-2">
+            {% for item in upcoming_itinerary_items %}
+              <div class="itinerary-row">
+                <div>
+                  <p class="mb-1 fw-semibold">{{ item.title }}</p>
+                  <p class="text-secondary small mb-0">{{ item.date.strftime("%b %-d") }} at {{ item.time.strftime("%I:%M %p") }}</p>
+                </div>
+                <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.edit_itinerary_item', trip_id=trip.id, item_id=item.id) }}">Edit</a>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-secondary mb-0">Upcoming plans will appear here once itinerary items are added.</p>
+        {% endif %}
+      </section>
+    </div>
+  </div>
+
+  <section class="page-panel mb-4">
+    <h2 class="h5 mb-2">Notes</h2>
+    {% if trip.notes %}
+      <p class="mb-0 preserve-lines">{{ trip.notes }}</p>
+    {% else %}
+      <p class="text-secondary mb-0">No notes added yet.</p>
+    {% endif %}
   </section>
 {% endblock %}

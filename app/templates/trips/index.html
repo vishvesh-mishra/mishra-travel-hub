@@ -1,8 +1,48 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <section class="page-panel">
-    <h1 class="h3 mb-2">Trips</h1>
-    <p class="text-secondary mb-0">Trip management routes are registered. CRUD will be added later.</p>
-  </section>
+  <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1">Trips</h1>
+      <p class="text-secondary mb-0">Plan and track family travel.</p>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('trips.create') }}">Create Trip</a>
+  </div>
+
+  {% if trips %}
+    <div class="trip-list d-grid gap-3">
+      {% for trip in trips %}
+        {% set is_past = trip.end_date < today %}
+        {% set is_active = trip.start_date <= today <= trip.end_date %}
+        <article class="trip-card">
+          <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+            <div>
+              <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <h2 class="h5 mb-0">{{ trip.name }}</h2>
+                {% if is_active %}
+                  <span class="badge text-bg-success">Active</span>
+                {% elif is_past %}
+                  <span class="badge text-bg-secondary">Past</span>
+                {% else %}
+                  <span class="badge text-bg-info">Upcoming</span>
+                {% endif %}
+              </div>
+              <p class="mb-2 text-secondary">{{ trip.destination }}</p>
+              <p class="small mb-0">{{ trip.start_date.strftime("%b %-d, %Y") }} to {{ trip.end_date.strftime("%b %-d, %Y") }}</p>
+            </div>
+            <div class="d-flex flex-wrap align-items-start gap-2">
+              <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.detail', trip_id=trip.id) }}">View</a>
+              <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.edit', trip_id=trip.id) }}">Edit</a>
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <section class="page-panel">
+      <h2 class="h5 mb-2">No trips yet</h2>
+      <p class="text-secondary mb-3">Create the first trip to start organizing destinations, dates, and notes.</p>
+      <a class="btn btn-primary" href="{{ url_for('trips.create') }}">Create Trip</a>
+    </section>
+  {% endif %}
 {% endblock %}

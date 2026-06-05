@@ -1,8 +1,44 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <section class="page-panel">
-    <h1 class="h3 mb-2">Itinerary</h1>
-    <p class="text-secondary mb-0">Trip {{ trip_id }} itinerary route is registered. Scheduling tools will be added later.</p>
-  </section>
+  <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1">Itinerary</h1>
+      <p class="text-secondary mb-0">{{ trip.name }} · {{ trip.destination }}</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.detail', trip_id=trip.id) }}">Trip Detail</a>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('trips.create_itinerary_item', trip_id=trip.id) }}">Add Item</a>
+    </div>
+  </div>
+
+  {% if items %}
+    <div class="itinerary-list d-grid gap-3">
+      {% for item in items %}
+        <article class="itinerary-card">
+          <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+            <div>
+              <p class="text-secondary small mb-1">{{ item.date.strftime("%b %-d, %Y") }} at {{ item.time.strftime("%I:%M %p") }}</p>
+              <h2 class="h5 mb-2">{{ item.title }}</h2>
+              {% if item.description %}
+                <p class="mb-0 preserve-lines">{{ item.description }}</p>
+              {% else %}
+                <p class="text-secondary mb-0">No description added.</p>
+              {% endif %}
+            </div>
+            <div class="d-flex flex-wrap align-items-start gap-2">
+              <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.edit_itinerary_item', trip_id=trip.id, item_id=item.id) }}">Edit</a>
+              <a class="btn btn-outline-danger btn-sm" href="{{ url_for('trips.delete_itinerary_item', trip_id=trip.id, item_id=item.id) }}">Delete</a>
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <section class="page-panel">
+      <h2 class="h5 mb-2">No itinerary items yet</h2>
+      <p class="text-secondary mb-3">Add the first scheduled activity for this trip.</p>
+      <a class="btn btn-primary" href="{{ url_for('trips.create_itinerary_item', trip_id=trip.id) }}">Add Itinerary Item</a>
+    </section>
+  {% endif %}
 {% endblock %}
