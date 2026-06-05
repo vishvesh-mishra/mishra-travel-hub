@@ -30,6 +30,8 @@ body {
 .itinerary-card,
 .document-card,
 .dashboard-card,
+.expense-card,
+.expense-category-row,
 .shopping-item,
 .shopping-progress,
 .metric-box,
@@ -70,7 +72,9 @@ body {
 }
 
 .shopping-section,
-.shopping-list {
+.shopping-list,
+.expense-section,
+.expense-list {
   max-width: 920px;
 }
 

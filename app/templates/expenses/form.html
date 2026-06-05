@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% macro field_errors(field) %}
+  {% if field.errors %}
+    <div class="invalid-feedback d-block">
+      {{ field.errors | join(" ") }}
+    </div>
+  {% endif %}
+{% endmacro %}
+
+{% block content %}
+  <div class="d-flex align-items-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1">{{ form_title }}</h1>
+      <p class="text-secondary mb-0">{{ trip.name }}</p>
+    </div>
+    <a class="btn btn-outline-light btn-sm" href="{{ url_for('expenses.for_trip', trip_id=trip.id) }}">Back</a>
+  </div>
+
+  <form method="post" class="page-panel trip-form" novalidate>
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+      {{ form.amount.label(class="form-label") }}
+      {{ form.amount(class="form-control" ~ (" is-invalid" if form.amount.errors else ""), autocomplete="off", placeholder="0.00") }}
+      {{ field_errors(form.amount) }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.category.label(class="form-label") }}
+      {{ form.category(class="form-select" ~ (" is-invalid" if form.category.errors else "")) }}
+      {{ field_errors(form.category) }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.expense_date.label(class="form-label") }}
+      {{ form.expense_date(class="form-control" ~ (" is-invalid" if form.expense_date.errors else "")) }}
+      {{ field_errors(form.expense_date) }}
+    </div>
+
+    <div class="mb-4">
+      {{ form.description.label(class="form-label") }}
+      {{ form.description(class="form-control" ~ (" is-invalid" if form.description.errors else ""), rows="4") }}
+      {{ field_errors(form.description) }}
+    </div>
+
+    <div class="d-flex flex-column flex-sm-row gap-2">
+      {{ form.submit(class="btn btn-primary") }}
+      <a class="btn btn-outline-light" href="{{ url_for('expenses.for_trip', trip_id=trip.id) }}">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

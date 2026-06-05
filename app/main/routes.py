@@ -5,7 +5,7 @@ from flask import render_template
 from sqlalchemy import and_, case, func, or_
 
 from app.extensions import db
-from app.models import Document, ItineraryItem, ShoppingItem, Trip
+from app.models import Document, Expense, ItineraryItem, ShoppingItem, Trip
 
 from . import bp
 
@@ -45,6 +45,11 @@ def dashboard():
     fallback_trip = Trip.query.order_by(Trip.start_date.desc(), Trip.id.desc()).first()
     primary_trip = next_trip or (active_trips[0].trip if active_trips else fallback_trip)
 
+    total_expense_spend = (
+        db.session.query(func.sum(Expense.amount)).scalar()
+    ) or 0
+    total_expense_count = Expense.query.count()
+
     return render_template(
         "main/dashboard.html",
         title="Dashboard",
@@ -56,6 +61,8 @@ def dashboard():
         next_trip_shopping_remaining=next_trip_shopping_remaining,
         next_itinerary_item=next_itinerary_item,
         primary_trip=primary_trip,
+        total_expense_spend=total_expense_spend,
+        total_expense_count=total_expense_count,
         today=today,
     )
 

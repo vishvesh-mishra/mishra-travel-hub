@@ -1,10 +1,10 @@
 from datetime import date
 
 from flask import flash, redirect, render_template, url_for
-from sqlalchemy import case
+from sqlalchemy import case, func
 
 from app.extensions import db
-from app.models import Document, ItineraryItem, ShoppingItem, Trip
+from app.models import Document, Expense, ItineraryItem, ShoppingItem, Trip
 
 from . import bp
 from .forms import DeleteItineraryItemForm, DeleteTripForm, ItineraryItemForm, TripForm
@@ -66,6 +66,20 @@ def detail(trip_id):
         trip_id=trip.id, completed=True
     ).count()
     shopping_progress = round((shopping_completed / shopping_total) * 100) if shopping_total else 0
+    expense_total = (
+        db.session.query(func.sum(Expense.amount))
+        .filter(Expense.trip_id == trip.id)
+        .scalar()
+    ) or 0
+    expense_count = Expense.query.filter_by(trip_id=trip.id).count()
+    top_category_row = (
+        db.session.query(Expense.category, func.sum(Expense.amount))
+        .filter(Expense.trip_id == trip.id)
+        .group_by(Expense.category)
+        .order_by(func.sum(Expense.amount).desc())
+        .first()
+    )
+    expense_top_category = top_category_row[0] if top_category_row else None
     return render_template(
         "trips/detail.html",
         title=trip.name,
@@ -79,6 +93,9 @@ def detail(trip_id):
         shopping_total=shopping_total,
         shopping_completed=shopping_completed,
         shopping_progress=shopping_progress,
+        expense_total=expense_total,
+        expense_count=expense_count,
+        expense_top_category=expense_top_category,
         today=today,
     )
 

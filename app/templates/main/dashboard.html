@@ -103,6 +103,33 @@
       </div>
     </div>
 
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <section class="dashboard-card h-100">
+          <p class="text-secondary mb-1">Total Spend</p>
+          <p class="display-6 mb-0">${{ "{:.2f}".format(total_expense_spend) }}</p>
+          <p class="text-secondary mt-3 mb-0">{{ total_expense_count }} {{ "expense" if total_expense_count == 1 else "expenses" }} logged</p>
+          {% if total_expense_count %}
+            <a class="btn btn-outline-light btn-sm mt-3" href="{{ url_for('expenses.index') }}">View Expenses</a>
+          {% else %}
+            <p class="text-secondary small mb-0 mt-3">Expenses logged across all trips appear here.</p>
+          {% endif %}
+        </section>
+      </div>
+      <div class="col-md-6">
+        <section class="dashboard-card h-100">
+          <p class="text-secondary mb-1">Add Expense</p>
+          {% if primary_trip %}
+            <p class="h4 mb-3">{{ primary_trip.name }}</p>
+            <a class="btn btn-primary btn-sm" href="{{ url_for('expenses.create', trip_id=primary_trip.id) }}">Log Expense</a>
+          {% else %}
+            <p class="text-secondary mb-3">Create a trip to start logging expenses.</p>
+            <a class="btn btn-primary btn-sm" href="{{ url_for('trips.create') }}">Add Trip</a>
+          {% endif %}
+        </section>
+      </div>
+    </div>
+
     <section class="mb-4">
       <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
         <h2 class="h5 mb-0">Active Trips</h2>

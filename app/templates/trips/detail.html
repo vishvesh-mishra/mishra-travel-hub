@@ -158,6 +158,43 @@
     </div>
   </section>
 
+  <section class="shopping-section mb-4">
+    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-3">
+      <div>
+        <h2 class="h5 mb-1">Expenses</h2>
+        <p class="text-secondary mb-0">
+          ${{ "{:.2f}".format(expense_total) }}
+          {% if expense_count %} · {{ expense_count }} {{ "expense" if expense_count == 1 else "expenses" }}{% endif %}
+          {% if expense_top_category %} · Top: {{ expense_top_category }}{% endif %}
+        </p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-light btn-sm" href="{{ url_for('expenses.for_trip', trip_id=trip.id) }}">Manage Expenses</a>
+        <a class="btn btn-primary btn-sm" href="{{ url_for('expenses.create', trip_id=trip.id) }}">Add Expense</a>
+      </div>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="metric-box">
+          <p class="text-secondary small mb-1">Total Spend</p>
+          <p class="mb-0 fw-semibold">${{ "{:.2f}".format(expense_total) }}</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="metric-box">
+          <p class="text-secondary small mb-1">Expenses</p>
+          <p class="mb-0 fw-semibold">{{ expense_count }}</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="metric-box">
+          <p class="text-secondary small mb-1">Top Category</p>
+          <p class="mb-0 fw-semibold">{{ expense_top_category or "—" }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="page-panel mb-4">
     <h2 class="h5 mb-2">Notes</h2>
     {% if trip.notes %}

@@ -1,8 +1,40 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <section class="page-panel">
-    <h1 class="h3 mb-2">Expenses</h1>
-    <p class="text-secondary mb-0">Expense routes are registered. CRUD will be added later.</p>
-  </section>
+  <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1">Expenses</h1>
+      <p class="text-secondary mb-0">Spend tracked by trip.</p>
+    </div>
+    <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.index') }}">Trips</a>
+  </div>
+
+  {% if trip_rows %}
+    <div class="d-grid gap-3 trip-list">
+      {% for trip, expense_count, total_spend in trip_rows %}
+        <article class="trip-card">
+          <div class="d-flex flex-column flex-sm-row justify-content-between gap-3">
+            <div>
+              <h2 class="h5 mb-1">{{ trip.name }}</h2>
+              <p class="text-secondary mb-1">{{ trip.destination }}</p>
+              <p class="small mb-0">
+                {{ expense_count }} {{ "expense" if expense_count == 1 else "expenses" }}
+                {% if total_spend %} · ${{ "{:.2f}".format(total_spend) }}{% endif %}
+              </p>
+            </div>
+            <div class="d-flex flex-wrap align-items-start gap-2">
+              <a class="btn btn-outline-light btn-sm" href="{{ url_for('expenses.for_trip', trip_id=trip.id) }}">Manage</a>
+              <a class="btn btn-primary btn-sm" href="{{ url_for('expenses.create', trip_id=trip.id) }}">Add Expense</a>
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <section class="page-panel">
+      <h2 class="h5 mb-2">No trips yet</h2>
+      <p class="text-secondary mb-3">Create a trip before logging expenses.</p>
+      <a class="btn btn-primary" href="{{ url_for('trips.create') }}">Create Trip</a>
+    </section>
+  {% endif %}
 {% endblock %}

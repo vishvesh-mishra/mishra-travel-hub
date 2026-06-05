@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1">Expenses</h1>
+      <p class="text-secondary mb-0">{{ trip.name }} · {{ trip.destination }}</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.detail', trip_id=trip.id) }}">Trip Detail</a>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('expenses.create', trip_id=trip.id) }}">Add Expense</a>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="metric-box">
+        <p class="text-secondary small mb-1">Total Spend</p>
+        <p class="mb-0 fw-semibold">${{ "{:.2f}".format(total_spend) }}</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="metric-box">
+        <p class="text-secondary small mb-1">Expenses</p>
+        <p class="mb-0 fw-semibold">{{ expense_count }}</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="metric-box">
+        <p class="text-secondary small mb-1">Top Category</p>
+        <p class="mb-0 fw-semibold">{{ category_totals[0][0] if category_totals else "—" }}</p>
+      </div>
+    </div>
+  </div>
+
+  {% if category_totals %}
+    <section class="expense-section mb-4">
+      <h2 class="h5 mb-3">Spend by Category</h2>
+      <div class="d-grid gap-2">
+        {% for category, amount in category_totals %}
+          {% set pct = ((amount / total_spend * 100) | round | int) if total_spend else 0 %}
+          <div class="expense-category-row">
+            <div class="d-flex justify-content-between gap-3 mb-2">
+              <span class="fw-semibold">{{ category }}</span>
+              <span class="text-secondary">${{ "{:.2f}".format(amount) }}</span>
+            </div>
+            <div class="progress" role="progressbar" aria-label="{{ category }} spend" aria-valuenow="{{ pct }}" aria-valuemin="0" aria-valuemax="100">
+              <div class="progress-bar" style="width: {{ pct }}%"></div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+  {% if expenses %}
+    <div class="expense-list d-grid gap-3">
+      {% for expense in expenses %}
+        <article class="expense-card">
+          <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+            <div>
+              <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <span class="badge text-bg-secondary">{{ expense.category }}</span>
+                <span class="text-secondary small">{{ expense.expense_date.strftime("%b %-d, %Y") }}</span>
+              </div>
+              <p class="h5 mb-0">${{ "{:.2f}".format(expense.amount) }}</p>
+              {% if expense.description %}
+                <p class="text-secondary small mb-0 mt-1 preserve-lines">{{ expense.description }}</p>
+              {% endif %}
+            </div>
+            <div class="d-flex flex-wrap align-items-start gap-2">
+              <a class="btn btn-outline-light btn-sm" href="{{ url_for('expenses.edit', trip_id=trip.id, expense_id=expense.id) }}">Edit</a>
+              <a class="btn btn-outline-danger btn-sm" href="{{ url_for('expenses.delete', trip_id=trip.id, expense_id=expense.id) }}">Delete</a>
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <section class="page-panel">
+      <h2 class="h5 mb-2">No expenses yet</h2>
+      <p class="text-secondary mb-3">Log food, travel, accommodation, and other spending for this trip.</p>
+      <a class="btn btn-primary" href="{{ url_for('expenses.create', trip_id=trip.id) }}">Add Expense</a>
+    </section>
+  {% endif %}
+{% endblock %}
