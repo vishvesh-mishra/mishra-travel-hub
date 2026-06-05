@@ -55,6 +55,7 @@ def register_before_request(app):
             request.endpoint
             and not request.endpoint.startswith("auth.")
             and request.endpoint != "static"
+            and request.endpoint != "main.service_worker"
             and not current_user.is_authenticated
         ):
             return login_manager.unauthorized()

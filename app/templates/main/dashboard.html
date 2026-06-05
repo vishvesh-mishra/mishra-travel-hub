@@ -12,9 +12,10 @@
   {% endif %}
 {% endmacro %}
 
-{% macro trip_summary(row, today) %}
+{% macro trip_summary(row, today, readiness_map={}) %}
   {% set trip = row.trip %}
   {% set countdown = (trip.start_date - today).days %}
+  {% set r = readiness_map[trip.id] if trip.id in readiness_map else none %}
   <article class="dashboard-card">
     <div class="d-flex flex-column flex-sm-row justify-content-between gap-3">
       <div>
@@ -24,11 +25,17 @@
       </div>
       <div class="dashboard-trip-meta">
         <span class="badge text-bg-info">{{ countdown_label(countdown) }}</span>
+        {% if r %}<span class="badge text-bg-{{ r.color }}">{{ r.label }}</span>{% endif %}
         <span class="badge text-bg-secondary">{{ row.itinerary_count }} itinerary</span>
         <span class="badge text-bg-secondary">{{ row.document_count }} documents</span>
         <span class="badge text-bg-secondary">{{ row.shopping_remaining }} shopping left</span>
       </div>
     </div>
+    {% if r %}
+      <div class="progress mt-3" style="height: 3px;" role="progressbar" aria-valuenow="{{ r.score }}" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar bg-{{ r.color }}" style="width: {{ r.score }}%"></div>
+      </div>
+    {% endif %}
     <div class="d-flex flex-column flex-sm-row gap-2 mt-3">
       <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.detail', trip_id=trip.id) }}">View Trip</a>
       <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.create_itinerary_item', trip_id=trip.id) }}">Add Itinerary Item</a>
@@ -40,29 +47,72 @@
 
 {% block content %}
   <div class="dashboard-shell">
-    <section class="dashboard-hero mb-4">
-      <div>
-        <p class="text-secondary mb-1">Mishra Travel Hub</p>
-        <h1 class="display-6 mb-2">Dashboard</h1>
-        {% if next_trip %}
-          <p class="mb-0">{{ countdown_label(next_trip_countdown) }} until {{ next_trip.name }}.</p>
-        {% else %}
-          <p class="mb-0">Plan the next family trip from one place.</p>
-        {% endif %}
-      </div>
-      <div class="d-flex flex-column flex-sm-row gap-2">
-        <a class="btn btn-primary" href="{{ url_for('trips.create') }}">Add Trip</a>
-        {% if primary_trip %}
-          <a class="btn btn-outline-light" href="{{ url_for('trips.create_itinerary_item', trip_id=primary_trip.id) }}">Add Itinerary Item</a>
-          <a class="btn btn-outline-light" href="{{ url_for('documents.create', trip_id=primary_trip.id) }}">Add Document</a>
-          <a class="btn btn-outline-light" href="{{ url_for('shopping.create', trip_id=primary_trip.id) }}">Add Shopping Item</a>
-        {% else %}
-          <a class="btn btn-outline-secondary disabled" aria-disabled="true">Add Itinerary Item</a>
-          <a class="btn btn-outline-secondary disabled" aria-disabled="true">Add Document</a>
-          <a class="btn btn-outline-secondary disabled" aria-disabled="true">Add Shopping Item</a>
-        {% endif %}
+    <section class="hero-card mb-4">
+      <img src="{{ url_for('static', filename='images/family-hero.jpeg') }}"
+           alt=""
+           class="hero-img"
+           role="presentation">
+      <div class="hero-overlay">
+        <div class="hero-content">
+          {% if next_trip %}
+            <div class="hero-count-block">
+              <span class="hero-count-number">{{ next_trip_countdown }}</span>
+              <div class="hero-count-labels">
+                <p class="hero-count-unit">{{ "DAY" if next_trip_countdown == 1 else "DAYS" }}</p>
+                <p class="hero-count-dest">UNTIL {{ next_trip.name | upper }}</p>
+              </div>
+            </div>
+          {% else %}
+            <h1 class="hero-title">Mishra Travel Hub</h1>
+          {% endif %}
+          <p class="hero-eyebrow">Family Travel Companion</p>
+        </div>
       </div>
     </section>
+    <section class="mb-4">
+      <h2 class="quick-actions-heading">Quick Actions</h2>
+      <div class="quick-actions-grid">
+        <a class="quick-action" href="{{ url_for('expenses.create', trip_id=primary_trip.id) if primary_trip else url_for('trips.index') }}">
+          <div class="quick-action__icon quick-action__icon--green"><i class="bi bi-currency-dollar"></i></div>
+          <span class="quick-action__label">Expense</span>
+        </a>
+        <a class="quick-action" href="{{ url_for('shopping.for_trip', trip_id=primary_trip.id) if primary_trip else url_for('shopping.index') }}">
+          <div class="quick-action__icon quick-action__icon--orange"><i class="bi bi-cart-fill"></i></div>
+          <span class="quick-action__label">Shopping</span>
+        </a>
+        <a class="quick-action" href="{{ url_for('documents.create', trip_id=primary_trip.id) if primary_trip else url_for('documents.index') }}">
+          <div class="quick-action__icon quick-action__icon--blue"><i class="bi bi-file-earmark-text-fill"></i></div>
+          <span class="quick-action__label">Document</span>
+        </a>
+        <a class="quick-action" href="{{ url_for('journal.create', trip_id=primary_trip.id) if primary_trip else url_for('journal.index') }}">
+          <div class="quick-action__icon quick-action__icon--purple"><i class="bi bi-journal-text"></i></div>
+          <span class="quick-action__label">Journal</span>
+        </a>
+      </div>
+    </section>
+
+    {% if attention_alerts %}
+      <section class="attention-center mb-4">
+        <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+          <h2 class="h5 mb-0">Needs Attention</h2>
+          <a class="small link-light" href="{{ url_for('trips.detail', trip_id=primary_trip.id) }}">{{ primary_trip.name }}</a>
+        </div>
+        <div class="attention-card">
+          {% for alert in attention_alerts %}
+            <div class="attention-row">
+              <div class="attention-icon attention-icon--{{ alert.icon_color }}">
+                <i class="bi {{ alert.icon }}"></i>
+              </div>
+              <div class="attention-text">
+                <p class="attention-text__title">{{ alert.message }}</p>
+                <p class="attention-text__subtitle">{{ alert.subtitle }}</p>
+              </div>
+              <a class="btn btn-sm btn-outline-light flex-shrink-0" href="{{ alert.action_url }}">{{ alert.action_label }}</a>
+            </div>
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
 
     <div class="row g-3 mb-4">
       <div class="col-lg-5">
@@ -167,7 +217,7 @@
       {% if active_trips %}
         <div class="dashboard-grid">
           {% for row in active_trips %}
-            {{ trip_summary(row, today) }}
+            {{ trip_summary(row, today, readiness_map) }}
           {% endfor %}
         </div>
       {% else %}
@@ -185,7 +235,7 @@
       {% if upcoming_trips %}
         <div class="dashboard-grid">
           {% for row in upcoming_trips %}
-            {{ trip_summary(row, today) }}
+            {{ trip_summary(row, today, readiness_map) }}
           {% endfor %}
         </div>
       {% else %}

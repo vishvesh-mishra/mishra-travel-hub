@@ -1,13 +1,55 @@
 from datetime import date, datetime
 from types import SimpleNamespace
 
-from flask import render_template
+from flask import current_app, render_template, send_from_directory, url_for
 from sqlalchemy import and_, case, func, or_
 
 from app.extensions import db
 from app.models import Document, Expense, ItineraryItem, JournalEntry, ShoppingItem, Trip
+from app.utils import compute_readiness
 
 from . import bp
+
+
+@bp.route("/hub")
+def hub():
+    import os
+
+    is_production = os.environ.get("FLASK_CONFIG") == "production"
+    app_version = "1.0"
+    deploy_platform = "Render" if is_production else "Local"
+
+    db_size_str = "Active"
+    try:
+        db_url = current_app.config.get("SQLALCHEMY_DATABASE_URI", "")
+        if "sqlite" in db_url:
+            if db_url.startswith("sqlite:////"):
+                db_path = db_url[len("sqlite:///"):]
+            elif db_url.startswith("sqlite:///"):
+                db_path = os.path.join(os.getcwd(), db_url[len("sqlite:///"):])
+            else:
+                db_path = None
+            if db_path and os.path.exists(db_path):
+                size = os.path.getsize(db_path)
+                db_size_str = f"{max(1, size // 1024)} KB"
+    except Exception:
+        pass
+
+    return render_template(
+        "main/hub.html",
+        title="Hub",
+        app_version=app_version,
+        deploy_platform=deploy_platform,
+        db_size=db_size_str,
+        is_production=is_production,
+    )
+
+
+@bp.route("/sw.js")
+def service_worker():
+    resp = send_from_directory(current_app.static_folder, "sw.js")
+    resp.headers["Service-Worker-Allowed"] = "/"
+    return resp
 
 
 @bp.route("/")
@@ -57,6 +99,63 @@ def dashboard():
         .first()
     )
 
+    all_dashboard_trips = active_trips + upcoming_trips
+    readiness_map = {row.trip.id: compute_readiness(row.trip.id) for row in all_dashboard_trips}
+    if primary_trip and primary_trip.id not in readiness_map:
+        readiness_map[primary_trip.id] = compute_readiness(primary_trip.id)
+
+    attention_alerts = []
+    if primary_trip:
+        r = readiness_map[primary_trip.id]
+        pt_id = primary_trip.id
+        if r["itinerary_count"] == 0:
+            attention_alerts.append({
+                "icon": "bi-map",
+                "icon_color": "primary",
+                "message": "No itinerary planned yet",
+                "subtitle": "Add your trip plans and schedule",
+                "action_url": url_for("trips.create_itinerary_item", trip_id=pt_id),
+                "action_label": "Add",
+            })
+        if r["doc_count"] == 0:
+            attention_alerts.append({
+                "icon": "bi-file-earmark",
+                "icon_color": "danger",
+                "message": "No documents uploaded",
+                "subtitle": "Add your passport and booking docs",
+                "action_url": url_for("documents.create", trip_id=pt_id),
+                "action_label": "Add",
+            })
+        if r["shopping_total"] > 0 and r["shopping_completed"] < r["shopping_total"]:
+            remaining = r["shopping_total"] - r["shopping_completed"]
+            pct = round((r["shopping_completed"] / r["shopping_total"]) * 100)
+            attention_alerts.append({
+                "icon": "bi-cart",
+                "icon_color": "warning",
+                "message": f'{remaining} shopping {"item" if remaining == 1 else "items"} remaining',
+                "subtitle": f'{pct}% of your list is complete',
+                "action_url": url_for("shopping.for_trip", trip_id=pt_id),
+                "action_label": "View",
+            })
+        if r["expense_count"] == 0:
+            attention_alerts.append({
+                "icon": "bi-currency-dollar",
+                "icon_color": "success",
+                "message": "No expenses logged yet",
+                "subtitle": "Track your trip expenses",
+                "action_url": url_for("expenses.create", trip_id=pt_id),
+                "action_label": "Add",
+            })
+        if r["journal_count"] == 0:
+            attention_alerts.append({
+                "icon": "bi-journal-text",
+                "icon_color": "purple",
+                "message": "No journal entries written",
+                "subtitle": "Capture your memories",
+                "action_url": url_for("journal.create", trip_id=pt_id),
+                "action_label": "Add",
+            })
+
     return render_template(
         "main/dashboard.html",
         title="Dashboard",
@@ -72,6 +171,8 @@ def dashboard():
         total_expense_count=total_expense_count,
         total_journal_count=total_journal_count,
         recent_journal_entry=recent_journal_entry,
+        readiness_map=readiness_map,
+        attention_alerts=attention_alerts,
         today=today,
     )
 

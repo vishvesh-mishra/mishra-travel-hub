@@ -1,54 +1,42 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
-    <div>
-      <h1 class="h3 mb-1">{{ trip.name }}</h1>
-      <p class="text-secondary mb-0">{{ trip.destination }}</p>
+  <section class="trip-detail-header mb-4">
+    <div class="trip-detail-header__body">
+      <div class="trip-detail-header__info">
+        <p class="trip-detail-header__eyebrow">{{ trip.destination }}</p>
+        <h1 class="trip-detail-header__title">{{ trip.name }}</h1>
+        <p class="trip-detail-header__dates">
+          {{ trip.start_date.strftime("%b %-d") }} – {{ trip.end_date.strftime("%b %-d, %Y") }}
+          &nbsp;·&nbsp; {{ duration_days }} {{ "day" if duration_days == 1 else "days" }}
+        </p>
+      </div>
+      <div class="trip-detail-header__status">
+        {% if countdown_days > 1 %}
+          <p class="trip-detail-header__countdown">{{ countdown_days }}<span class="trip-detail-header__countdown-unit">d</span></p>
+        {% elif countdown_days == 1 %}
+          <p class="trip-detail-header__countdown">Tomorrow</p>
+        {% elif countdown_days == 0 %}
+          <p class="trip-detail-header__countdown">Today</p>
+        {% else %}
+          <p class="trip-detail-header__countdown">Active</p>
+        {% endif %}
+        <div class="mb-2">
+          <span class="badge text-bg-{{ readiness.color }}">{{ readiness.label }}</span>
+        </div>
+        <div class="progress mb-1" style="height: 4px; width: 120px;" role="progressbar" aria-valuenow="{{ readiness.score }}" aria-valuemin="0" aria-valuemax="100">
+          <div class="progress-bar bg-{{ readiness.color }}" style="width: {{ readiness.score }}%"></div>
+        </div>
+        <p class="text-secondary small mb-0">{{ readiness.score }}% ready</p>
+      </div>
     </div>
-    <div class="d-flex flex-wrap gap-2">
+    <div class="trip-detail-header__actions">
       <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.index') }}">Trips</a>
       <a class="btn btn-primary btn-sm" href="{{ url_for('trips.create_itinerary_item', trip_id=trip.id) }}">Add Itinerary Item</a>
       <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.edit', trip_id=trip.id) }}">Edit</a>
       <a class="btn btn-outline-danger btn-sm" href="{{ url_for('trips.delete', trip_id=trip.id) }}">Delete</a>
     </div>
-  </div>
-
-  <section class="trip-hero mb-4">
-    <div>
-      <p class="text-secondary mb-1">Countdown</p>
-      {% if countdown_days > 1 %}
-        <p class="display-6 mb-0">{{ countdown_days }} days</p>
-      {% elif countdown_days == 1 %}
-        <p class="display-6 mb-0">Tomorrow</p>
-      {% elif countdown_days == 0 %}
-        <p class="display-6 mb-0">Starts today</p>
-      {% else %}
-        <p class="display-6 mb-0">Started {{ countdown_days | abs }} days ago</p>
-      {% endif %}
-    </div>
   </section>
-
-  <div class="row g-3 mb-4">
-    <div class="col-md-4">
-      <div class="metric-box">
-        <p class="text-secondary small mb-1">Start Date</p>
-        <p class="mb-0 fw-semibold">{{ trip.start_date.strftime("%b %-d, %Y") }}</p>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="metric-box">
-        <p class="text-secondary small mb-1">End Date</p>
-        <p class="mb-0 fw-semibold">{{ trip.end_date.strftime("%b %-d, %Y") }}</p>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="metric-box">
-        <p class="text-secondary small mb-1">Duration</p>
-        <p class="mb-0 fw-semibold">{{ duration_days }} {{ "day" if duration_days == 1 else "days" }}</p>
-      </div>
-    </div>
-  </div>
 
   <div class="row g-3 mb-4">
     <div class="col-lg-5">
@@ -147,13 +135,19 @@
         <a class="btn btn-primary btn-sm" href="{{ url_for('shopping.create', trip_id=trip.id) }}">Add Item</a>
       </div>
     </div>
-    <div class="shopping-progress">
-      <div class="d-flex justify-content-between gap-3 mb-2">
-        <span class="fw-semibold">{{ shopping_progress }}%</span>
-        <span class="text-secondary small">Progress</span>
+    <div class="shopping-progress d-flex align-items-center gap-3">
+      <div class="shopping-donut-wrapper" role="img" aria-label="Shopping {{ shopping_progress }}% complete">
+        <svg class="shopping-donut" viewBox="0 0 36 36">
+          <circle class="shopping-donut__bg" cx="18" cy="18" r="15.9"/>
+          <circle class="shopping-donut__bar" cx="18" cy="18" r="15.9"
+            stroke-dasharray="{{ shopping_progress }} {{ 100 - shopping_progress }}"
+            stroke-dashoffset="25"/>
+        </svg>
+        <span class="shopping-donut__pct" aria-hidden="true">{{ shopping_progress }}%</span>
       </div>
-      <div class="progress" role="progressbar" aria-label="Shopping progress" aria-valuenow="{{ shopping_progress }}" aria-valuemin="0" aria-valuemax="100">
-        <div class="progress-bar" style="width: {{ shopping_progress }}%"></div>
+      <div>
+        <p class="fw-semibold mb-0">{{ shopping_progress }}% complete</p>
+        <p class="text-secondary small mb-0">{{ shopping_completed }} of {{ shopping_total }} items packed</p>
       </div>
     </div>
   </section>

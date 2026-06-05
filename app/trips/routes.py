@@ -5,6 +5,7 @@ from sqlalchemy import case, func
 
 from app.extensions import db
 from app.models import Document, Expense, ItineraryItem, JournalEntry, ShoppingItem, Trip
+from app.utils import compute_readiness
 
 from . import bp
 from .forms import DeleteItineraryItemForm, DeleteTripForm, ItineraryItemForm, TripForm
@@ -86,6 +87,7 @@ def detail(trip_id):
         .order_by(JournalEntry.entry_date.desc(), JournalEntry.id.desc())
         .first()
     )
+    readiness = compute_readiness(trip.id)
     return render_template(
         "trips/detail.html",
         title=trip.name,
@@ -104,6 +106,7 @@ def detail(trip_id):
         expense_top_category=expense_top_category,
         journal_count=journal_count,
         recent_journal_entry=recent_journal_entry,
+        readiness=readiness,
         today=today,
     )
 

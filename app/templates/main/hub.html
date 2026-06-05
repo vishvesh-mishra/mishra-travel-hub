@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="hub-shell">
+
+    <header class="hub-header mb-4">
+      <p class="hub-header__eyebrow">Control Center</p>
+      <h1 class="hub-header__title">Mishra Travel Hub</h1>
+      <p class="hub-header__subtitle">Family Travel Companion</p>
+    </header>
+
+    <section class="page-panel mb-3">
+      <h2 class="hub-section-label">App Information</h2>
+      <div class="row g-3">
+        <div class="col-6">
+          <p class="text-secondary small mb-1">Version</p>
+          <p class="fw-semibold mb-0">{{ app_version }}</p>
+        </div>
+        <div class="col-6">
+          <p class="text-secondary small mb-1">Platform</p>
+          <p class="fw-semibold mb-0">{{ deploy_platform }}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="page-panel mb-3">
+      <h2 class="hub-section-label">System</h2>
+      <div class="row g-3">
+        <div class="col-4">
+          <p class="text-secondary small mb-1">Last Backup</p>
+          <p class="fw-semibold small mb-0">{{ "Managed by Render" if is_production else "Local" }}</p>
+        </div>
+        <div class="col-4">
+          <p class="text-secondary small mb-1">Database</p>
+          <p class="fw-semibold small mb-0">{{ db_size }}</p>
+        </div>
+        <div class="col-4">
+          <p class="text-secondary small mb-1">Status</p>
+          <p class="fw-semibold small mb-0">
+            <span class="hub-status-dot"></span>{{ "Online" if is_production else "Development" }}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-3">
+      <h2 class="hub-section-label">Quick Actions</h2>
+      <div class="row g-2">
+        <div class="col-6">
+          <a class="hub-action" href="{{ url_for('main.dashboard') }}">
+            <i class="bi bi-house hub-action__icon"></i>
+            <span>Dashboard</span>
+          </a>
+        </div>
+        <div class="col-6">
+          <a class="hub-action" href="{{ url_for('trips.index') }}">
+            <i class="bi bi-airplane hub-action__icon"></i>
+            <span>View Trips</span>
+          </a>
+        </div>
+        <div class="col-6">
+          <a class="hub-action" href="{{ url_for('trips.create') }}">
+            <i class="bi bi-plus-circle hub-action__icon"></i>
+            <span>Add Trip</span>
+          </a>
+        </div>
+        <div class="col-6">
+          <a class="hub-action hub-action--logout" href="{{ url_for('auth.logout') }}">
+            <i class="bi bi-box-arrow-right hub-action__icon"></i>
+            <span>Logout</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="page-panel hub-family-card">
+      <p class="hub-family-card__message">Built for the Mishra family.</p>
+      <p class="hub-family-card__sub">One place for trips, documents, shopping and memories.</p>
+    </section>
+
+  </div>
+{% endblock %}
