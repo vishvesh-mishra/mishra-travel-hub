@@ -1,8 +1,36 @@
 {% extends "base.html" %}
 
+{% macro field_errors(field) %}
+  {% if field.errors %}
+    <div class="invalid-feedback d-block">
+      {{ field.errors | join(" ") }}
+    </div>
+  {% endif %}
+{% endmacro %}
+
 {% block content %}
-  <section class="page-panel">
-    <h1 class="h3 mb-2">Login</h1>
-    <p class="text-secondary mb-0">Authentication wiring is ready. The login form will be added with the auth workflow.</p>
-  </section>
+  <div class="login-shell">
+    <div class="login-panel">
+      <p class="text-secondary mb-1 small">Mishra Travel Hub</p>
+      <h1 class="h3 mb-4">Sign in</h1>
+
+      <form method="post" novalidate>
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+          {{ form.username.label(class="form-label") }}
+          {{ form.username(class="form-control" ~ (" is-invalid" if form.username.errors else ""), autocomplete="username", autofocus=true) }}
+          {{ field_errors(form.username) }}
+        </div>
+
+        <div class="mb-4">
+          {{ form.password.label(class="form-label") }}
+          {{ form.password(class="form-control" ~ (" is-invalid" if form.password.errors else ""), autocomplete="current-password") }}
+          {{ field_errors(form.password) }}
+        </div>
+
+        {{ form.submit(class="btn btn-primary w-100") }}
+      </form>
+    </div>
+  </div>
 {% endblock %}

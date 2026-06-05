@@ -21,6 +21,7 @@ def create_app(config_name=None):
     from . import models  # noqa: F401
 
     register_blueprints(app)
+    register_before_request(app)
     register_commands(app)
 
     return app
@@ -44,8 +45,43 @@ def register_blueprints(app):
     app.register_blueprint(journal_bp)
 
 
+def register_before_request(app):
+    @app.before_request
+    def require_login():
+        from flask import request
+        from flask_login import current_user
+
+        if (
+            request.endpoint
+            and not request.endpoint.startswith("auth.")
+            and request.endpoint != "static"
+            and not current_user.is_authenticated
+        ):
+            return login_manager.unauthorized()
+
+
 def register_commands(app):
     @app.cli.command("init-db")
     def init_db():
         db.create_all()
         print("Initialized the database.")
+
+    @app.cli.command("create-admin")
+    def create_admin():
+        import click
+
+        from .models import User
+
+        username = click.prompt("Username")
+        password = click.prompt("Password", hide_input=True, confirmation_prompt=True)
+
+        existing = User.query.filter_by(username=username).first()
+        if existing:
+            click.echo(f"Error: user '{username}' already exists.")
+            return
+
+        user = User(username=username)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        click.echo(f"Admin user '{username}' created.")

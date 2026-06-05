@@ -173,6 +173,21 @@ body {
   white-space: pre-wrap;
 }
 
+.login-shell {
+  display: flex;
+  justify-content: center;
+  padding-top: 3rem;
+}
+
+.login-panel {
+  width: 100%;
+  max-width: 400px;
+  padding: 1.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
 @media (max-width: 575.98px) {
   .btn {
     width: 100%;
