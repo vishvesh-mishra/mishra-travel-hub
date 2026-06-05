@@ -18,7 +18,7 @@
         <article class="itinerary-card">
           <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
             <div>
-              <p class="text-secondary small mb-1">{{ item.date.strftime("%b %-d, %Y") }} at {{ item.time.strftime("%I:%M %p") }}</p>
+              <p class="text-secondary small mb-1">{{ item.date.strftime("%b %-d, %Y") }}{% if item.time %} at {{ item.time.strftime("%I:%M %p") }}{% endif %}</p>
               <h2 class="h5 mb-2">{{ item.title }}</h2>
               {% if item.description %}
                 <p class="mb-0 preserve-lines">{{ item.description }}</p>

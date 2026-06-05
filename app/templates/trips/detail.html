@@ -46,7 +46,7 @@
           <a class="small link-light" href="{{ url_for('trips.itinerary', trip_id=trip.id) }}">View all</a>
         </div>
         {% if next_itinerary_item %}
-          <p class="text-secondary small mb-1">{{ next_itinerary_item.date.strftime("%b %-d, %Y") }} at {{ next_itinerary_item.time.strftime("%I:%M %p") }}</p>
+          <p class="text-secondary small mb-1">{{ next_itinerary_item.date.strftime("%b %-d, %Y") }}{% if next_itinerary_item.time %} at {{ next_itinerary_item.time.strftime("%I:%M %p") }}{% endif %}</p>
           <p class="h4 mb-2">{{ next_itinerary_item.title }}</p>
           {% if next_itinerary_item.description %}
             <p class="text-secondary mb-0 preserve-lines">{{ next_itinerary_item.description }}</p>
@@ -71,7 +71,7 @@
               <div class="itinerary-row">
                 <div>
                   <p class="mb-1 fw-semibold">{{ item.title }}</p>
-                  <p class="text-secondary small mb-0">{{ item.date.strftime("%b %-d") }} at {{ item.time.strftime("%I:%M %p") }}</p>
+                  <p class="text-secondary small mb-0">{{ item.date.strftime("%b %-d") }}{% if item.time %} at {{ item.time.strftime("%I:%M %p") }}{% endif %}</p>
                 </div>
                 <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.edit_itinerary_item', trip_id=trip.id, item_id=item.id) }}">Edit</a>
               </div>

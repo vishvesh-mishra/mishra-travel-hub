@@ -142,7 +142,7 @@
           {% if next_itinerary_item %}
             <p class="text-secondary small mb-1">{{ next_itinerary_item.trip.name }}</p>
             <p class="h4 mb-2">{{ next_itinerary_item.title }}</p>
-            <p class="mb-2">{{ next_itinerary_item.date.strftime("%b %-d, %Y") }} at {{ next_itinerary_item.time.strftime("%I:%M %p") }}</p>
+            <p class="mb-2">{{ next_itinerary_item.date.strftime("%b %-d, %Y") }}{% if next_itinerary_item.time %} at {{ next_itinerary_item.time.strftime("%I:%M %p") }}{% endif %}</p>
             {% if next_itinerary_item.description %}
               <p class="text-secondary mb-0 preserve-lines">{{ next_itinerary_item.description }}</p>
             {% endif %}

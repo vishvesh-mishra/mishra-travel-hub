@@ -4,7 +4,7 @@
   <section class="page-panel">
     <h1 class="h3 mb-3">Delete Itinerary Item</h1>
     <p class="mb-1">Are you sure you want to delete <strong>{{ item.title }}</strong>?</p>
-    <p class="text-secondary mb-4">{{ item.date.strftime("%b %-d, %Y") }} at {{ item.time.strftime("%I:%M %p") }}</p>
+    <p class="text-secondary mb-4">{{ item.date.strftime("%b %-d, %Y") }}{% if item.time %} at {{ item.time.strftime("%I:%M %p") }}{% endif %}</p>
 
     <form method="post" class="d-flex flex-column flex-sm-row gap-2">
       {{ form.hidden_tag() }}
