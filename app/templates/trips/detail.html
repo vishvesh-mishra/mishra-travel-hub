@@ -96,6 +96,68 @@
     </div>
   </div>
 
+  <section class="document-section mb-4">
+    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-3">
+      <div>
+        <h2 class="h5 mb-1">Documents</h2>
+        <p class="text-secondary mb-0">{{ document_count }} {{ "document" if document_count == 1 else "documents" }}</p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-light btn-sm" href="{{ url_for('documents.for_trip', trip_id=trip.id) }}">Manage Documents</a>
+        <a class="btn btn-primary btn-sm" href="{{ url_for('documents.create', trip_id=trip.id) }}">Add Document</a>
+      </div>
+    </div>
+
+    {% if recent_documents %}
+      <div class="document-grid">
+        {% for document in recent_documents %}
+          <article class="document-card">
+            <span class="badge text-bg-secondary mb-2">{{ document.category }}</span>
+            <h3 class="h6 mb-2">{{ document.title }}</h3>
+            {% if document.notes %}
+              <p class="text-secondary small preserve-lines">{{ document.notes }}</p>
+            {% else %}
+              <p class="text-secondary small">No notes added.</p>
+            {% endif %}
+            <div class="d-flex flex-column gap-2">
+              {% if document.external_url %}
+                <a class="btn btn-outline-light btn-sm" href="{{ document.external_url }}" target="_blank" rel="noopener noreferrer">Open Link</a>
+              {% endif %}
+              <a class="btn btn-outline-light btn-sm" href="{{ url_for('documents.edit', trip_id=trip.id, document_id=document.id) }}">Edit</a>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="page-panel">
+        <p class="text-secondary mb-3">No document links saved yet.</p>
+        <a class="btn btn-primary btn-sm" href="{{ url_for('documents.create', trip_id=trip.id) }}">Add Document</a>
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="shopping-section mb-4">
+    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-3">
+      <div>
+        <h2 class="h5 mb-1">Shopping</h2>
+        <p class="text-secondary mb-0">{{ shopping_completed }} of {{ shopping_total }} {{ "item" if shopping_total == 1 else "items" }} completed</p>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
+        <a class="btn btn-outline-light btn-sm" href="{{ url_for('shopping.for_trip', trip_id=trip.id) }}">Manage Shopping</a>
+        <a class="btn btn-primary btn-sm" href="{{ url_for('shopping.create', trip_id=trip.id) }}">Add Item</a>
+      </div>
+    </div>
+    <div class="shopping-progress">
+      <div class="d-flex justify-content-between gap-3 mb-2">
+        <span class="fw-semibold">{{ shopping_progress }}%</span>
+        <span class="text-secondary small">Progress</span>
+      </div>
+      <div class="progress" role="progressbar" aria-label="Shopping progress" aria-valuenow="{{ shopping_progress }}" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar" style="width: {{ shopping_progress }}%"></div>
+      </div>
+    </div>
+  </section>
+
   <section class="page-panel mb-4">
     <h2 class="h5 mb-2">Notes</h2>
     {% if trip.notes %}

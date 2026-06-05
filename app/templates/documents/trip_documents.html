@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1">Documents</h1>
+      <p class="text-secondary mb-0">{{ trip.name }} · {{ trip.destination }}</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.detail', trip_id=trip.id) }}">Trip Detail</a>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('documents.create', trip_id=trip.id) }}">Add Document</a>
+    </div>
+  </div>
+
+  {% if documents %}
+    <div class="document-grid">
+      {% for document in documents %}
+        <article class="document-card">
+          <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
+            <div>
+              <span class="badge text-bg-secondary mb-2">{{ document.category }}</span>
+              <h2 class="h5 mb-0">{{ document.title }}</h2>
+            </div>
+          </div>
+          {% if document.notes %}
+            <p class="text-secondary preserve-lines">{{ document.notes }}</p>
+          {% else %}
+            <p class="text-secondary">No notes added.</p>
+          {% endif %}
+          <div class="d-flex flex-column flex-sm-row gap-2">
+            {% if document.external_url %}
+              <a class="btn btn-outline-light btn-sm" href="{{ document.external_url }}" target="_blank" rel="noopener noreferrer">Open Link</a>
+            {% else %}
+              <button class="btn btn-outline-secondary btn-sm" type="button" disabled>No Link</button>
+            {% endif %}
+            <a class="btn btn-outline-light btn-sm" href="{{ url_for('documents.edit', trip_id=trip.id, document_id=document.id) }}">Edit</a>
+            <a class="btn btn-outline-danger btn-sm" href="{{ url_for('documents.delete', trip_id=trip.id, document_id=document.id) }}">Delete</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <section class="page-panel">
+      <h2 class="h5 mb-2">No documents yet</h2>
+      <p class="text-secondary mb-3">Add Google Drive links for passports, visas, tickets, insurance, and other travel documents.</p>
+      <a class="btn btn-primary" href="{{ url_for('documents.create', trip_id=trip.id) }}">Add Document</a>
+    </section>
+  {% endif %}
+{% endblock %}

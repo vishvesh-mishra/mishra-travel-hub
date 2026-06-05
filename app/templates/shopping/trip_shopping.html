@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
+    <div>
+      <h1 class="h3 mb-1">Shopping</h1>
+      <p class="text-secondary mb-0">{{ trip.name }} · {{ trip.destination }}</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.detail', trip_id=trip.id) }}">Trip Detail</a>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('shopping.create', trip_id=trip.id) }}">Add Item</a>
+    </div>
+  </div>
+
+  <section class="shopping-progress mb-4">
+    <div class="d-flex flex-column flex-sm-row justify-content-between gap-2 mb-3">
+      <div>
+        <h2 class="h5 mb-1">{{ progress_percentage }}% complete</h2>
+        <p class="text-secondary mb-0">{{ completed_items }} of {{ total_items }} {{ "item" if total_items == 1 else "items" }} completed</p>
+      </div>
+    </div>
+    <div class="progress" role="progressbar" aria-label="Shopping progress" aria-valuenow="{{ progress_percentage }}" aria-valuemin="0" aria-valuemax="100">
+      <div class="progress-bar" style="width: {{ progress_percentage }}%"></div>
+    </div>
+  </section>
+
+  {% if items %}
+    <div class="shopping-list d-grid gap-3">
+      {% for item in items %}
+        <article class="shopping-item {% if item.completed %}is-complete{% endif %}">
+          <div class="d-flex gap-3">
+            <form method="post" action="{{ url_for('shopping.toggle', trip_id=trip.id, item_id=item.id) }}">
+              {{ toggle_form.hidden_tag() }}
+              <button class="shopping-toggle" type="submit" aria-label="Mark {{ item.item_name }} {{ 'incomplete' if item.completed else 'complete' }}">
+                {% if item.completed %}&check;{% endif %}
+              </button>
+            </form>
+            <div class="flex-grow-1 min-width-0">
+              <div class="d-flex flex-column flex-sm-row justify-content-between gap-2">
+                <div>
+                  <span class="badge text-bg-secondary mb-2">{{ item.category }}</span>
+                  <h2 class="h5 mb-1">{{ item.item_name }}</h2>
+                </div>
+                <div class="d-flex flex-wrap align-items-start gap-2">
+                  <a class="btn btn-outline-light btn-sm" href="{{ url_for('shopping.edit', trip_id=trip.id, item_id=item.id) }}">Edit</a>
+                  <a class="btn btn-outline-danger btn-sm" href="{{ url_for('shopping.delete', trip_id=trip.id, item_id=item.id) }}">Delete</a>
+                </div>
+              </div>
+              {% if item.notes %}
+                <p class="text-secondary mb-0 preserve-lines">{{ item.notes }}</p>
+              {% else %}
+                <p class="text-secondary mb-0">No notes added.</p>
+              {% endif %}
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <section class="page-panel">
+      <h2 class="h5 mb-2">No shopping items yet</h2>
+      <p class="text-secondary mb-3">Add packing items, gifts, souvenirs, food, or electronics for this trip.</p>
+      <a class="btn btn-primary" href="{{ url_for('shopping.create', trip_id=trip.id) }}">Add Item</a>
+    </section>
+  {% endif %}
+{% endblock %}

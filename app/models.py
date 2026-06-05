@@ -69,9 +69,10 @@ class Document(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     trip_id = db.Column(db.Integer, db.ForeignKey("trip.id"), nullable=False)
     title = db.Column(db.String(160), nullable=False)
-    document_type = db.Column(db.String(80), nullable=False)
-    file_path = db.Column(db.String(255))
+    category = db.Column(db.String(80), nullable=False)
     external_url = db.Column(db.String(500))
+    notes = db.Column(db.Text)
+    created_at = db.Column(db.DateTime(timezone=True), default=utc_now, nullable=False)
 
     trip = db.relationship("Trip", back_populates="documents")
 
@@ -80,7 +81,8 @@ class ShoppingItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     trip_id = db.Column(db.Integer, db.ForeignKey("trip.id"), nullable=False)
     item_name = db.Column(db.String(160), nullable=False)
-    category = db.Column(db.String(80))
+    category = db.Column(db.String(80), nullable=False)
+    notes = db.Column(db.Text)
     completed = db.Column(db.Boolean, default=False, nullable=False)
 
     trip = db.relationship("Trip", back_populates="shopping_items")

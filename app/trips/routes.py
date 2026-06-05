@@ -4,7 +4,7 @@ from flask import flash, redirect, render_template, url_for
 from sqlalchemy import case
 
 from app.extensions import db
-from app.models import ItineraryItem, Trip
+from app.models import Document, ItineraryItem, ShoppingItem, Trip
 
 from . import bp
 from .forms import DeleteItineraryItemForm, DeleteTripForm, ItineraryItemForm, TripForm
@@ -54,6 +54,18 @@ def detail(trip_id):
         ItineraryItem.date >= today
     ).limit(5).all()
     next_itinerary_item = upcoming_itinerary_items[0] if upcoming_itinerary_items else None
+    recent_documents = (
+        Document.query.filter_by(trip_id=trip.id)
+        .order_by(Document.created_at.desc(), Document.id.desc())
+        .limit(4)
+        .all()
+    )
+    document_count = Document.query.filter_by(trip_id=trip.id).count()
+    shopping_total = ShoppingItem.query.filter_by(trip_id=trip.id).count()
+    shopping_completed = ShoppingItem.query.filter_by(
+        trip_id=trip.id, completed=True
+    ).count()
+    shopping_progress = round((shopping_completed / shopping_total) * 100) if shopping_total else 0
     return render_template(
         "trips/detail.html",
         title=trip.name,
@@ -62,6 +74,11 @@ def detail(trip_id):
         duration_days=duration_days,
         next_itinerary_item=next_itinerary_item,
         upcoming_itinerary_items=upcoming_itinerary_items,
+        document_count=document_count,
+        recent_documents=recent_documents,
+        shopping_total=shopping_total,
+        shopping_completed=shopping_completed,
+        shopping_progress=shopping_progress,
         today=today,
     )
 

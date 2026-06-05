@@ -28,6 +28,10 @@ body {
 
 .trip-card,
 .itinerary-card,
+.document-card,
+.dashboard-card,
+.shopping-item,
+.shopping-progress,
 .metric-box,
 .trip-hero,
 .next-event,
@@ -51,6 +55,91 @@ body {
   max-width: 920px;
 }
 
+.document-section {
+  max-width: 920px;
+}
+
+.document-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1rem;
+}
+
+.document-card {
+  min-width: 0;
+}
+
+.shopping-section,
+.shopping-list {
+  max-width: 920px;
+}
+
+.shopping-item.is-complete {
+  opacity: 0.68;
+}
+
+.shopping-item.is-complete h2 {
+  text-decoration: line-through;
+}
+
+.shopping-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 2px solid rgba(255, 255, 255, 0.38);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.shopping-toggle:focus-visible {
+  outline: 3px solid rgba(13, 110, 253, 0.55);
+  outline-offset: 3px;
+}
+
+.shopping-item.is-complete .shopping-toggle {
+  border-color: #198754;
+  background: #198754;
+}
+
+.progress {
+  height: 0.75rem;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dashboard-shell {
+  max-width: 1040px;
+}
+
+.dashboard-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(13, 110, 253, 0.14);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.dashboard-trip-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  justify-content: flex-start;
+  gap: 0.5rem;
+}
+
 .itinerary-row {
   display: flex;
   align-items: center;
@@ -68,6 +157,11 @@ body {
 @media (max-width: 575.98px) {
   .btn {
     width: 100%;
+  }
+
+  .dashboard-hero {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .itinerary-row {
