@@ -95,5 +95,47 @@
         navigator.serviceWorker.register('/sw.js');
       }
     </script>
+    <script>
+      /* Phase 5.1 — Native Touch Interaction System */
+      (function () {
+        'use strict';
+
+        /* Centralized haptic: 10ms light buzz, graceful degradation */
+        window.mthHaptic = function () {
+          if (navigator.vibrate) { navigator.vibrate(10); }
+        };
+
+        /* Unlock CSS :active states on iOS Safari —
+           iOS only fires :active when there is a touchstart listener. */
+        document.addEventListener('touchstart', function () {}, { passive: true });
+
+        /* Delegated haptic feedback — one handler covers the entire document */
+        var HAPTIC_SEL = [
+          'a.travel-pass',
+          '.glance-card',
+          '.trip-index-card',
+          '.trip-compact-row',
+          '.next-up-inner',
+          '.timeline-node[data-href]',
+          '.chip',
+          '.icon-btn',
+          '.pg-head__back',
+          '.pg-head__action',
+          '.checklist-toggle-sm',
+          '.bottom-nav__item'
+        ].join(',');
+
+        document.addEventListener('touchstart', function (e) {
+          if (e.target.closest(HAPTIC_SEL)) { window.mthHaptic(); }
+        }, { passive: true });
+
+        /* Timeline node tap-to-navigate (data-href on <div> elements) */
+        document.addEventListener('click', function (e) {
+          var node = e.target.closest('.timeline-node[data-href]');
+          if (node) { window.location.href = node.getAttribute('data-href'); }
+        });
+
+      }());
+    </script>
   </body>
 </html>

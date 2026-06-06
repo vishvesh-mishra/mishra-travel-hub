@@ -17,7 +17,9 @@
       {% set trip_state = "past" %}
     {% endif %}
 
-    <section class="travel-pass mb-3" aria-label="Trip summary">
+    <a class="travel-pass mb-3"
+       href="{{ url_for('trips.detail', trip_id=primary_trip.id) }}"
+       aria-label="{{ primary_trip.name }} — view trip detail">
       <img class="travel-pass__bg"
            src="{{ url_for('static', filename='images/family-hero.jpeg') }}"
            alt="" role="presentation">
@@ -76,7 +78,7 @@
         {% endif %}
 
       </div>
-    </section>
+    </a>
 
   {% else %}
     <section class="travel-pass travel-pass--empty mb-3" aria-label="Welcome">
@@ -100,7 +102,9 @@
       <div class="trip-timeline">
         <div class="timeline-track">
 
-          <div class="timeline-node {% if primary_trip and primary_trip.start_date > today %}timeline-node--dim{% else %}timeline-node--current{% endif %}">
+          <div class="timeline-node {% if primary_trip and primary_trip.start_date > today %}timeline-node--dim{% else %}timeline-node--current{% endif %}"
+               data-href="{{ url_for('trips.detail', trip_id=primary_trip.id) }}"
+               role="link" aria-label="View trip detail">
             <div class="tn-dot tn-dot--today"></div>
             <p class="tn-date">TODAY</p>
             <p class="tn-title">{{ today.strftime("%b %-d") }}</p>
@@ -108,7 +112,9 @@
 
           {% for item in primary_trip_timeline %}
             <div class="timeline-connector{% if item.date < today %} timeline-connector--past{% endif %}"></div>
-            <div class="timeline-node{% if item.date < today %} timeline-node--past{% elif item.date == today %} timeline-node--current{% endif %}">
+            <div class="timeline-node{% if item.date < today %} timeline-node--past{% elif item.date == today %} timeline-node--current{% endif %}"
+                 data-href="{{ url_for('trips.itinerary', trip_id=primary_trip.id) }}"
+                 role="link" aria-label="{{ item.title }}">
               <div class="tn-dot{% if item.date < today %} tn-dot--past{% elif item.date == today %} tn-dot--today{% endif %}"></div>
               <p class="tn-date">{{ item.date.strftime("%b %-d") }}</p>
               <p class="tn-title">{{ item.title | truncate(18, true, '') }}</p>
