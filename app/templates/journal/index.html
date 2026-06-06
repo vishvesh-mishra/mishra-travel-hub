@@ -1,37 +1,42 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
-    <div>
-      <h1 class="h3 mb-1">Journal</h1>
-      <p class="text-secondary mb-0">Travel memories by trip.</p>
-    </div>
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0">Journal</h1>
     <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.index') }}">Trips</a>
   </div>
 
   {% if trip_rows %}
-    <div class="d-grid gap-3 trip-list">
+    <div class="d-grid gap-3">
       {% for trip, entry_count in trip_rows %}
-        <article class="trip-card">
-          <div class="d-flex flex-column flex-sm-row justify-content-between gap-3">
+        <div class="jrn-trip-card">
+          <div class="jrn-trip-header">
             <div>
-              <h2 class="h5 mb-1">{{ trip.name }}</h2>
-              <p class="text-secondary mb-1">{{ trip.destination }}</p>
-              <p class="small mb-0">{{ entry_count }} {{ "entry" if entry_count == 1 else "entries" }}</p>
+              <p class="jrn-trip-name">{{ trip.name }}</p>
+              <p class="jrn-trip-dest">{{ trip.destination }}</p>
             </div>
-            <div class="d-flex flex-wrap align-items-start gap-2">
-              <a class="btn btn-outline-light btn-sm" href="{{ url_for('journal.for_trip', trip_id=trip.id) }}">Manage</a>
-              <a class="btn btn-primary btn-sm" href="{{ url_for('journal.create', trip_id=trip.id) }}">Add Entry</a>
-            </div>
+            <a class="jrn-add-link" href="{{ url_for('journal.create', trip_id=trip.id) }}">+ Add</a>
           </div>
-        </article>
+
+          <div class="mb-1">
+            <p class="jrn-count-big">{{ entry_count }}</p>
+            <p class="jrn-count-sub">{{ "entry" if entry_count == 1 else "entries" }}</p>
+          </div>
+
+          <div class="jrn-footer">
+            <span></span>
+            <a class="jrn-cta-link" href="{{ url_for('journal.for_trip', trip_id=trip.id) }}">
+              View Journal <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
       {% endfor %}
     </div>
   {% else %}
     <section class="page-panel">
       <h2 class="h5 mb-2">No trips yet</h2>
       <p class="text-secondary mb-3">Create a trip before adding journal entries.</p>
-      <a class="btn btn-primary" href="{{ url_for('trips.create') }}">Create Trip</a>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('trips.create') }}">Create Trip</a>
     </section>
   {% endif %}
 {% endblock %}

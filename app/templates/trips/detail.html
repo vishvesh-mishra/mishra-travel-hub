@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <section class="trip-detail-header mb-4">
+  {# ====== TRIP HEADER ====== #}
+  <section class="trip-detail-header mb-3">
     <div class="trip-detail-header__body">
       <div class="trip-detail-header__info">
         <p class="trip-detail-header__eyebrow">{{ trip.destination }}</p>
@@ -19,7 +20,7 @@
         {% elif countdown_days == 0 %}
           <p class="trip-detail-header__countdown">Today</p>
         {% else %}
-          <p class="trip-detail-header__countdown">Active</p>
+          <p class="trip-detail-header__countdown" style="font-size:1.25rem">Active</p>
         {% endif %}
         <div class="mb-2">
           <span class="badge text-bg-{{ readiness.color }}">{{ readiness.label }}</span>
@@ -35,114 +36,111 @@
         </div>
       </div>
     </div>
-    <div class="trip-detail-header__actions">
-      <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.index') }}">Trips</a>
-      <a class="btn btn-primary btn-sm" href="{{ url_for('trips.create_itinerary_item', trip_id=trip.id) }}">Add Itinerary Item</a>
-      <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.edit', trip_id=trip.id) }}">Edit</a>
-      <a class="btn btn-outline-danger btn-sm" href="{{ url_for('trips.delete', trip_id=trip.id) }}">Delete</a>
-    </div>
   </section>
 
-  <div class="row g-3 mb-4">
-    <div class="col-lg-5">
-      <section class="next-event h-100">
-        <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
-          <h2 class="h5 mb-0">Next Event</h2>
-          <a class="small link-light" href="{{ url_for('trips.itinerary', trip_id=trip.id) }}">View all</a>
-        </div>
-        {% if next_itinerary_item %}
-          <p class="text-secondary small mb-1">{{ next_itinerary_item.date.strftime("%b %-d, %Y") }}{% if next_itinerary_item.time %} at {{ next_itinerary_item.time.strftime("%I:%M %p") }}{% endif %}</p>
-          <p class="h4 mb-2">{{ next_itinerary_item.title }}</p>
-          {% if next_itinerary_item.description %}
-            <p class="text-secondary mb-0 preserve-lines">{{ next_itinerary_item.description }}</p>
-          {% else %}
-            <p class="text-secondary mb-0">No description added.</p>
-          {% endif %}
-        {% else %}
-          <p class="text-secondary mb-3">No upcoming itinerary items yet.</p>
-          <a class="btn btn-primary btn-sm" href="{{ url_for('trips.create_itinerary_item', trip_id=trip.id) }}">Add Itinerary Item</a>
-        {% endif %}
-      </section>
-    </div>
-    <div class="col-lg-7">
-      <section class="itinerary-preview h-100">
-        <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
-          <h2 class="h5 mb-0">Upcoming Itinerary</h2>
-          <a class="small link-light" href="{{ url_for('trips.itinerary', trip_id=trip.id) }}">Manage</a>
-        </div>
-        {% if upcoming_itinerary_items %}
-          <div class="d-grid gap-2">
-            {% for item in upcoming_itinerary_items %}
-              <div class="itinerary-row">
-                <div>
-                  <p class="mb-1 fw-semibold">{{ item.title }}</p>
-                  <p class="text-secondary small mb-0">{{ item.date.strftime("%b %-d") }}{% if item.time %} at {{ item.time.strftime("%I:%M %p") }}{% endif %}</p>
-                </div>
-                <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.edit_itinerary_item', trip_id=trip.id, item_id=item.id) }}">Edit</a>
-              </div>
-            {% endfor %}
-          </div>
-        {% else %}
-          <p class="text-secondary mb-0">Upcoming plans will appear here once itinerary items are added.</p>
-        {% endif %}
-      </section>
-    </div>
-  </div>
+  {# ====== CHIP NAVIGATION BAR ====== #}
+  <nav class="chip-bar mb-4" aria-label="Trip navigation">
+    <a class="chip" href="{{ url_for('trips.index') }}">← All Trips</a>
+    <a class="chip" href="{{ url_for('trips.itinerary', trip_id=trip.id) }}">
+      <i class="bi bi-map" aria-hidden="true"></i> Itinerary
+    </a>
+    <a class="chip" href="{{ url_for('documents.for_trip', trip_id=trip.id) }}">
+      <i class="bi bi-file-earmark-text" aria-hidden="true"></i> Documents
+    </a>
+    <a class="chip" href="{{ url_for('shopping.for_trip', trip_id=trip.id) }}">
+      <i class="bi bi-cart" aria-hidden="true"></i> Shopping
+    </a>
+    <a class="chip" href="{{ url_for('expenses.for_trip', trip_id=trip.id) }}">
+      <i class="bi bi-currency-dollar" aria-hidden="true"></i> Expenses
+    </a>
+    <a class="chip" href="{{ url_for('journal.for_trip', trip_id=trip.id) }}">
+      <i class="bi bi-journal-text" aria-hidden="true"></i> Journal
+    </a>
+    <a class="chip chip--icon" href="{{ url_for('trips.edit', trip_id=trip.id) }}" title="Edit trip">
+      <i class="bi bi-pencil" aria-hidden="true"></i>
+    </a>
+    <a class="chip chip--icon chip--danger" href="{{ url_for('trips.delete', trip_id=trip.id) }}" title="Delete trip">
+      <i class="bi bi-trash3" aria-hidden="true"></i>
+    </a>
+  </nav>
 
-  <section class="document-section mb-4">
-    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-3">
-      <div>
-        <h2 class="h5 mb-1">Documents</h2>
-        <p class="text-secondary mb-0">{{ document_count }} {{ "document" if document_count == 1 else "documents" }}</p>
+  {# ====== NEXT UP ====== #}
+  {% if next_itinerary_item %}
+    <div class="page-panel mb-3">
+      <div class="section-head">
+        <p class="section-head__title">Next Up</p>
+        <a class="section-head__link" href="{{ url_for('trips.itinerary', trip_id=trip.id) }}">View all →</a>
       </div>
-      <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-outline-light btn-sm" href="{{ url_for('documents.for_trip', trip_id=trip.id) }}">Manage Documents</a>
-        <a class="btn btn-primary btn-sm" href="{{ url_for('documents.create', trip_id=trip.id) }}">Add Document</a>
-      </div>
+      <p class="text-secondary small mb-1">
+        {{ next_itinerary_item.date.strftime("%b %-d, %Y") }}{% if next_itinerary_item.time %} · {{ next_itinerary_item.time.strftime("%I:%M %p") }}{% endif %}
+      </p>
+      <p class="fw-semibold mb-0">{{ next_itinerary_item.title }}</p>
+      {% if next_itinerary_item.description %}
+        <p class="text-secondary small mb-0 mt-1 preserve-lines">{{ next_itinerary_item.description[:120] }}{% if next_itinerary_item.description|length > 120 %}…{% endif %}</p>
+      {% endif %}
     </div>
+  {% endif %}
 
-    {% if recent_documents %}
-      <div class="document-grid">
-        {% for document in recent_documents %}
-          <article class="document-card">
-            <span class="badge text-bg-secondary mb-2">{{ document.category }}</span>
-            <h3 class="h6 mb-2">{{ document.title }}</h3>
-            {% if document.notes %}
-              <p class="text-secondary small preserve-lines">{{ document.notes }}</p>
-            {% else %}
-              <p class="text-secondary small">No notes added.</p>
-            {% endif %}
-            <div class="d-flex flex-column gap-2">
-              {% if document.external_url %}
-                <a class="btn btn-outline-light btn-sm" href="{{ document.external_url }}" target="_blank" rel="noopener noreferrer">Open Link</a>
-              {% endif %}
-              <a class="btn btn-outline-light btn-sm" href="{{ url_for('documents.edit', trip_id=trip.id, document_id=document.id) }}">Edit</a>
+  {# ====== ITINERARY PREVIEW ====== #}
+  <div class="page-panel mb-3">
+    <div class="section-head">
+      <p class="section-head__title">Itinerary</p>
+      <a class="section-head__link" href="{{ url_for('trips.create_itinerary_item', trip_id=trip.id) }}">+ Add</a>
+    </div>
+    {% if upcoming_itinerary_items %}
+      <div class="itin-list">
+        {% for item in upcoming_itinerary_items %}
+          <div class="itin-item{% if item.date < today %} is-past{% endif %}">
+            <div class="itin-date-col">
+              <span class="itin-date-day">{{ item.date.strftime("%-d") }}</span>
+              <span class="itin-date-mon">{{ item.date.strftime("%b") }}</span>
             </div>
-          </article>
+            <div class="itin-divider"></div>
+            <div class="itin-body">
+              <p class="itin-title">{{ item.title }}</p>
+              {% if item.time %}<p class="itin-time">{{ item.time.strftime("%I:%M %p") }}</p>{% endif %}
+            </div>
+          </div>
         {% endfor %}
       </div>
     {% else %}
-      <div class="page-panel">
-        <p class="text-secondary mb-3">No document links saved yet.</p>
-        <a class="btn btn-primary btn-sm" href="{{ url_for('documents.create', trip_id=trip.id) }}">Add Document</a>
-      </div>
+      <p class="text-secondary small mb-0">No upcoming plans yet.</p>
     {% endif %}
-  </section>
+  </div>
 
-  <section class="shopping-section mb-4">
-    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-3">
-      <div>
-        <h2 class="h5 mb-1">Shopping</h2>
-        <p class="text-secondary mb-0">{{ shopping_completed }} of {{ shopping_total }} {{ "item" if shopping_total == 1 else "items" }} completed</p>
-      </div>
-      <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-outline-light btn-sm" href="{{ url_for('shopping.for_trip', trip_id=trip.id) }}">Manage Shopping</a>
-        <a class="btn btn-primary btn-sm" href="{{ url_for('shopping.create', trip_id=trip.id) }}">Add Item</a>
-      </div>
+  {# ====== DOCUMENTS ====== #}
+  <div class="page-panel mb-3">
+    <div class="section-head">
+      <p class="section-head__title">Documents</p>
+      <a class="section-head__link" href="{{ url_for('documents.for_trip', trip_id=trip.id) }}">Manage →</a>
     </div>
-    <div class="shopping-progress d-flex align-items-center gap-3">
+    {% if recent_documents %}
+      {% for document in recent_documents %}
+        <div class="doc-detail-row">
+          <i class="bi bi-check-circle-fill doc-detail-check" aria-hidden="true"></i>
+          <span class="doc-detail-title">{{ document.title }}</span>
+          <span class="doc-detail-cat">{{ document.category }}</span>
+          {% if document.external_url %}
+            <a class="doc-detail-link" href="{{ document.external_url }}" target="_blank" rel="noopener noreferrer" title="Open">
+              <i class="bi bi-box-arrow-up-right"></i>
+            </a>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="text-secondary small mb-0">No documents saved yet.</p>
+    {% endif %}
+  </div>
+
+  {# ====== SHOPPING ====== #}
+  <div class="page-panel mb-3">
+    <div class="section-head">
+      <p class="section-head__title">Shopping</p>
+      <a class="section-head__link" href="{{ url_for('shopping.for_trip', trip_id=trip.id) }}">Manage →</a>
+    </div>
+    <div class="d-flex align-items-center gap-3">
       <div class="shopping-donut-wrapper" role="img" aria-label="Shopping {{ shopping_progress }}% complete">
-        <svg class="shopping-donut" viewBox="0 0 36 36">
+        <svg class="shopping-donut" viewBox="0 0 36 36" aria-hidden="true">
           <circle class="shopping-donut__bg" cx="18" cy="18" r="15.9"/>
           <circle class="shopping-donut__bar" cx="18" cy="18" r="15.9"
             stroke-dasharray="{{ shopping_progress }} {{ 100 - shopping_progress }}"
@@ -151,81 +149,49 @@
         <span class="shopping-donut__pct" aria-hidden="true">{{ shopping_progress }}%</span>
       </div>
       <div>
-        <p class="fw-semibold mb-0">{{ shopping_progress }}% complete</p>
-        <p class="text-secondary small mb-0">{{ shopping_completed }} of {{ shopping_total }} items packed</p>
+        <p class="fw-semibold mb-0">{{ shopping_progress }}% packed</p>
+        <p class="text-secondary small mb-0">{{ shopping_completed }} of {{ shopping_total }} items</p>
       </div>
     </div>
-  </section>
+  </div>
 
-  <section class="shopping-section mb-4">
-    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-3">
-      <div>
-        <h2 class="h5 mb-1">Expenses</h2>
-        <p class="text-secondary mb-0">
-          ${{ "{:.2f}".format(expense_total) }}
-          {% if expense_count %} · {{ expense_count }} {{ "expense" if expense_count == 1 else "expenses" }}{% endif %}
-          {% if expense_top_category %} · Top: {{ expense_top_category }}{% endif %}
-        </p>
-      </div>
-      <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-outline-light btn-sm" href="{{ url_for('expenses.for_trip', trip_id=trip.id) }}">Manage Expenses</a>
-        <a class="btn btn-primary btn-sm" href="{{ url_for('expenses.create', trip_id=trip.id) }}">Add Expense</a>
-      </div>
+  {# ====== EXPENSES ====== #}
+  <div class="page-panel mb-3">
+    <div class="section-head">
+      <p class="section-head__title">Expenses</p>
+      <a class="section-head__link" href="{{ url_for('expenses.for_trip', trip_id=trip.id) }}">Manage →</a>
     </div>
-    <div class="row g-3">
-      <div class="col-md-4">
-        <div class="metric-box">
-          <p class="text-secondary small mb-1">Total Spend</p>
-          <p class="mb-0 fw-semibold">${{ "{:.2f}".format(expense_total) }}</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="metric-box">
-          <p class="text-secondary small mb-1">Expenses</p>
-          <p class="mb-0 fw-semibold">{{ expense_count }}</p>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="metric-box">
-          <p class="text-secondary small mb-1">Top Category</p>
-          <p class="mb-0 fw-semibold">{{ expense_top_category or "—" }}</p>
-        </div>
-      </div>
-    </div>
-  </section>
+    <p class="fw-semibold mb-1" style="font-size:1.375rem;letter-spacing:-0.03em">${{ "{:.2f}".format(expense_total) }}</p>
+    <p class="text-secondary small mb-0">
+      {{ expense_count }} {{ "expense" if expense_count == 1 else "expenses" }}{% if expense_top_category %} · Top: {{ expense_top_category }}{% endif %}
+    </p>
+  </div>
 
-  <section class="journal-section mb-4">
-    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-3">
-      <div>
-        <h2 class="h5 mb-1">Journal</h2>
-        <p class="text-secondary mb-0">{{ journal_count }} {{ "entry" if journal_count == 1 else "entries" }}</p>
-      </div>
-      <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-outline-light btn-sm" href="{{ url_for('journal.for_trip', trip_id=trip.id) }}">Manage Journal</a>
-        <a class="btn btn-primary btn-sm" href="{{ url_for('journal.create', trip_id=trip.id) }}">Add Entry</a>
-      </div>
+  {# ====== JOURNAL ====== #}
+  <div class="page-panel mb-3">
+    <div class="section-head">
+      <p class="section-head__title">Journal</p>
+      <a class="section-head__link" href="{{ url_for('journal.for_trip', trip_id=trip.id) }}">Manage →</a>
     </div>
     {% if recent_journal_entry %}
-      <article class="journal-entry">
-        <p class="text-secondary small mb-1">{{ recent_journal_entry.entry_date.strftime("%b %-d, %Y") }}</p>
-        <h3 class="h5 mb-2">{{ recent_journal_entry.title }}</h3>
-        {% if recent_journal_entry.content %}
-          <p class="journal-content preserve-lines mb-0 text-secondary">{{ recent_journal_entry.content[:300] }}{% if recent_journal_entry.content | length > 300 %}…{% endif %}</p>
-        {% endif %}
-      </article>
+      <p class="text-secondary small mb-1">{{ recent_journal_entry.entry_date.strftime("%b %-d, %Y") }}</p>
+      <p class="fw-semibold mb-1">{{ recent_journal_entry.title }}</p>
+      {% if recent_journal_entry.content %}
+        <p class="text-secondary small mb-0 preserve-lines">{{ recent_journal_entry.content[:200] }}{% if recent_journal_entry.content|length > 200 %}…{% endif %}</p>
+      {% endif %}
     {% else %}
-      <div class="page-panel">
-        <p class="text-secondary mb-0">Journal entries for this trip will appear here.</p>
-      </div>
+      <p class="text-secondary small mb-0">No journal entries yet. Start writing.</p>
     {% endif %}
-  </section>
+  </div>
 
-  <section class="page-panel mb-4">
-    <h2 class="h5 mb-2">Notes</h2>
-    {% if trip.notes %}
-      <p class="mb-0 preserve-lines">{{ trip.notes }}</p>
-    {% else %}
-      <p class="text-secondary mb-0">No notes added yet.</p>
-    {% endif %}
-  </section>
+  {# ====== NOTES ====== #}
+  {% if trip.notes %}
+    <div class="page-panel mb-3">
+      <div class="section-head">
+        <p class="section-head__title">Notes</p>
+      </div>
+      <p class="mb-0 preserve-lines" style="font-size:0.875rem;color:rgba(255,255,255,0.75)">{{ trip.notes }}</p>
+    </div>
+  {% endif %}
+
 {% endblock %}

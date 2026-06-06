@@ -1,40 +1,42 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
-    <div>
-      <h1 class="h3 mb-1">Expenses</h1>
-      <p class="text-secondary mb-0">Spend tracked by trip.</p>
-    </div>
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0">Expenses</h1>
     <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.index') }}">Trips</a>
   </div>
 
   {% if trip_rows %}
-    <div class="d-grid gap-3 trip-list">
+    <div class="d-grid gap-3">
       {% for trip, expense_count, total_spend in trip_rows %}
-        <article class="trip-card">
-          <div class="d-flex flex-column flex-sm-row justify-content-between gap-3">
+        <div class="exp-trip-card">
+          <div class="exp-trip-header">
             <div>
-              <h2 class="h5 mb-1">{{ trip.name }}</h2>
-              <p class="text-secondary mb-1">{{ trip.destination }}</p>
-              <p class="small mb-0">
-                {{ expense_count }} {{ "expense" if expense_count == 1 else "expenses" }}
-                {% if total_spend %} · ${{ "{:.2f}".format(total_spend) }}{% endif %}
-              </p>
+              <p class="exp-trip-name">{{ trip.name }}</p>
+              <p class="exp-trip-dest">{{ trip.destination }}</p>
             </div>
-            <div class="d-flex flex-wrap align-items-start gap-2">
-              <a class="btn btn-outline-light btn-sm" href="{{ url_for('expenses.for_trip', trip_id=trip.id) }}">Manage</a>
-              <a class="btn btn-primary btn-sm" href="{{ url_for('expenses.create', trip_id=trip.id) }}">Add Expense</a>
-            </div>
+            <a class="exp-add-link" href="{{ url_for('expenses.create', trip_id=trip.id) }}">+ Add</a>
           </div>
-        </article>
+
+          <div class="mb-1">
+            <p class="exp-total-big">${{ "{:.2f}".format(total_spend) if total_spend else "0.00" }}</p>
+            <p class="exp-total-sub">{{ expense_count }} {{ "expense" if expense_count == 1 else "expenses" }}</p>
+          </div>
+
+          <div class="exp-footer">
+            <span></span>
+            <a class="exp-cta-link" href="{{ url_for('expenses.for_trip', trip_id=trip.id) }}">
+              View Expenses <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
       {% endfor %}
     </div>
   {% else %}
     <section class="page-panel">
       <h2 class="h5 mb-2">No trips yet</h2>
       <p class="text-secondary mb-3">Create a trip before logging expenses.</p>
-      <a class="btn btn-primary" href="{{ url_for('trips.create') }}">Create Trip</a>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('trips.create') }}">Create Trip</a>
     </section>
   {% endif %}
 {% endblock %}

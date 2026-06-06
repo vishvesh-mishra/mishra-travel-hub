@@ -1,49 +1,49 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
-    <div>
-      <h1 class="h3 mb-1">Documents</h1>
-      <p class="text-secondary mb-0">{{ trip.name }} · {{ trip.destination }}</p>
+  <div class="pg-head">
+    <a class="pg-head__back" href="{{ url_for('trips.detail', trip_id=trip.id) }}" aria-label="Back">
+      <i class="bi bi-chevron-left" aria-hidden="true"></i>
+    </a>
+    <div class="pg-head__body">
+      <p class="pg-head__context">{{ trip.name }}</p>
+      <h1 class="pg-head__title">Documents</h1>
     </div>
-    <div class="d-flex flex-wrap gap-2">
-      <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.detail', trip_id=trip.id) }}">Trip Detail</a>
-      <a class="btn btn-primary btn-sm" href="{{ url_for('documents.create', trip_id=trip.id) }}">Add Document</a>
-    </div>
+    <a class="pg-head__action" href="{{ url_for('documents.create', trip_id=trip.id) }}" title="Add document">
+      <i class="bi bi-plus" aria-hidden="true"></i>
+    </a>
   </div>
 
   {% if documents %}
-    <div class="document-grid">
+    <div class="page-panel">
       {% for document in documents %}
-        <article class="document-card">
-          <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
-            <div>
-              <span class="badge text-bg-secondary mb-2">{{ document.category }}</span>
-              <h2 class="h5 mb-0">{{ document.title }}</h2>
-            </div>
-          </div>
-          {% if document.notes %}
-            <p class="text-secondary preserve-lines">{{ document.notes }}</p>
+        <div class="doc-detail-row">
+          <i class="bi bi-check-circle-fill doc-detail-check" aria-hidden="true"></i>
+          <span class="doc-detail-title">{{ document.title }}</span>
+          <span class="doc-detail-cat">{{ document.category }}</span>
+          {% if document.external_url %}
+            <a class="doc-detail-link" href="{{ document.external_url }}" target="_blank" rel="noopener noreferrer" title="Open link">
+              <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>
+            </a>
           {% else %}
-            <p class="text-secondary">No notes added.</p>
+            <span style="width:28px;height:28px;display:inline-flex;"></span>
           {% endif %}
-          <div class="d-flex flex-column flex-sm-row gap-2">
-            {% if document.external_url %}
-              <a class="btn btn-outline-light btn-sm" href="{{ document.external_url }}" target="_blank" rel="noopener noreferrer">Open Link</a>
-            {% else %}
-              <button class="btn btn-outline-secondary btn-sm" type="button" disabled>No Link</button>
-            {% endif %}
-            <a class="btn btn-outline-light btn-sm" href="{{ url_for('documents.edit', trip_id=trip.id, document_id=document.id) }}">Edit</a>
-            <a class="btn btn-outline-danger btn-sm" href="{{ url_for('documents.delete', trip_id=trip.id, document_id=document.id) }}">Delete</a>
+          <div class="doc-detail-actions">
+            <a class="icon-btn" href="{{ url_for('documents.edit', trip_id=trip.id, document_id=document.id) }}" title="Edit">
+              <i class="bi bi-pencil" aria-hidden="true"></i>
+            </a>
+            <a class="icon-btn icon-btn--del" href="{{ url_for('documents.delete', trip_id=trip.id, document_id=document.id) }}" title="Delete">
+              <i class="bi bi-trash3" aria-hidden="true"></i>
+            </a>
           </div>
-        </article>
+        </div>
       {% endfor %}
     </div>
   {% else %}
-    <section class="page-panel">
-      <h2 class="h5 mb-2">No documents yet</h2>
-      <p class="text-secondary mb-3">Add Google Drive links for passports, visas, tickets, insurance, and other travel documents.</p>
-      <a class="btn btn-primary" href="{{ url_for('documents.create', trip_id=trip.id) }}">Add Document</a>
-    </section>
+    <div class="page-panel" style="text-align:center;padding:2rem 1.25rem;">
+      <i class="bi bi-file-earmark-text" style="font-size:2rem;color:rgba(255,255,255,0.18);display:block;margin-bottom:0.75rem;"></i>
+      <p class="text-secondary mb-3">No documents saved yet. Add Google Drive links for passports, visas, and tickets.</p>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('documents.create', trip_id=trip.id) }}">Add Document</a>
+    </div>
   {% endif %}
 {% endblock %}
