@@ -10,6 +10,30 @@ from app.utils import compute_readiness
 
 from . import bp
 
+_COUNTRY_FLAGS = {
+    "united states": "🇺🇸",
+    "usa": "🇺🇸",
+    "uk": "🇬🇧",
+    "united kingdom": "🇬🇧",
+    "england": "🇬🇧",
+    "india": "🇮🇳",
+    "france": "🇫🇷",
+    "germany": "🇩🇪",
+    "italy": "🇮🇹",
+    "spain": "🇪🇸",
+    "japan": "🇯🇵",
+    "australia": "🇦🇺",
+    "canada": "🇨🇦",
+    "thailand": "🇹🇭",
+    "singapore": "🇸🇬",
+    "dubai": "🇦🇪",
+    "uae": "🇦🇪",
+    "switzerland": "🇨🇭",
+    "brazil": "🇧🇷",
+    "mexico": "🇲🇽",
+    "new zealand": "🇳🇿",
+}
+
 
 @bp.route("/hub")
 def hub():
@@ -156,6 +180,27 @@ def dashboard():
                 "action_label": "Add",
             })
 
+    primary_trip_timeline = []
+    primary_trip_expense_total = 0
+    primary_trip_flag = "✈️"
+    if primary_trip:
+        primary_trip_timeline = (
+            ItineraryItem.query
+            .filter_by(trip_id=primary_trip.id)
+            .order_by(ItineraryItem.date.asc(), ItineraryItem.time.asc())
+            .all()
+        )
+        primary_trip_expense_total = (
+            db.session.query(func.sum(Expense.amount))
+            .filter(Expense.trip_id == primary_trip.id)
+            .scalar()
+        ) or 0
+        dest = primary_trip.destination.lower()
+        for kw, flag in _COUNTRY_FLAGS.items():
+            if kw in dest:
+                primary_trip_flag = flag
+                break
+
     return render_template(
         "main/dashboard.html",
         title="Dashboard",
@@ -174,6 +219,9 @@ def dashboard():
         readiness_map=readiness_map,
         attention_alerts=attention_alerts,
         today=today,
+        primary_trip_timeline=primary_trip_timeline,
+        primary_trip_expense_total=primary_trip_expense_total,
+        primary_trip_flag=primary_trip_flag,
     )
 
 

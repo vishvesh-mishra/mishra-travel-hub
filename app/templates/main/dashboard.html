@@ -1,107 +1,235 @@
 {% extends "base.html" %}
 
-{% macro countdown_label(days) %}
-  {% if days is none %}
-    No trip scheduled
-  {% elif days == 0 %}
-    Starts today
-  {% elif days == 1 %}
-    Tomorrow
-  {% else %}
-    {{ days }} days
-  {% endif %}
-{% endmacro %}
-
-{% macro trip_summary(row, today, readiness_map={}) %}
-  {% set trip = row.trip %}
-  {% set countdown = (trip.start_date - today).days %}
-  {% set r = readiness_map[trip.id] if trip.id in readiness_map else none %}
-  <article class="dashboard-card">
-    <div class="d-flex flex-column flex-sm-row justify-content-between gap-3">
-      <div>
-        <h3 class="h5 mb-1">{{ trip.name }}</h3>
-        <p class="text-secondary mb-2">{{ trip.destination }}</p>
-        <p class="small mb-0">{{ trip.start_date.strftime("%b %-d, %Y") }}</p>
-      </div>
-      <div class="dashboard-trip-meta">
-        <span class="badge text-bg-info">{{ countdown_label(countdown) }}</span>
-        {% if r %}<span class="badge text-bg-{{ r.color }}">{{ r.label }}</span>{% endif %}
-        <span class="badge text-bg-secondary">{{ row.itinerary_count }} itinerary</span>
-        <span class="badge text-bg-secondary">{{ row.document_count }} documents</span>
-        <span class="badge text-bg-secondary">{{ row.shopping_remaining }} shopping left</span>
-      </div>
-    </div>
-    {% if r %}
-      <div class="progress mt-3" style="height: 3px;" role="progressbar" aria-valuenow="{{ r.score }}" aria-valuemin="0" aria-valuemax="100">
-        <div class="progress-bar bg-{{ r.color }}" style="width: {{ r.score }}%"></div>
-      </div>
-    {% endif %}
-    <div class="d-flex flex-column flex-sm-row gap-2 mt-3">
-      <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.detail', trip_id=trip.id) }}">View Trip</a>
-      <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.create_itinerary_item', trip_id=trip.id) }}">Add Itinerary Item</a>
-      <a class="btn btn-outline-light btn-sm" href="{{ url_for('documents.create', trip_id=trip.id) }}">Add Document</a>
-      <a class="btn btn-outline-light btn-sm" href="{{ url_for('shopping.create', trip_id=trip.id) }}">Add Shopping Item</a>
-    </div>
-  </article>
-{% endmacro %}
-
 {% block content %}
-  <div class="dashboard-shell">
-    <section class="hero-card mb-4">
-      <img src="{{ url_for('static', filename='images/family-hero.jpeg') }}"
-           alt=""
-           class="hero-img"
-           role="presentation">
-      <div class="hero-overlay">
-        <div class="hero-content">
-          {% if next_trip %}
-            <div class="hero-count-block">
-              <span class="hero-count-number">{{ next_trip_countdown }}</span>
-              <div class="hero-count-labels">
-                <p class="hero-count-unit">{{ "DAY" if next_trip_countdown == 1 else "DAYS" }}</p>
-                <p class="hero-count-dest">UNTIL {{ next_trip.name | upper }}</p>
-              </div>
+<div class="dashboard-shell">
+
+  {# ============================================================
+     TRAVEL PASS HERO
+  ============================================================ #}
+  {% if primary_trip %}
+    {% set r = readiness_map[primary_trip.id] if primary_trip.id in readiness_map else none %}
+    {% set hero_countdown = (primary_trip.start_date - today).days %}
+    {% if hero_countdown > 0 %}
+      {% set trip_state = "upcoming" %}
+    {% elif primary_trip.end_date >= today %}
+      {% set trip_state = "active" %}
+    {% else %}
+      {% set trip_state = "past" %}
+    {% endif %}
+
+    <section class="travel-pass mb-3" aria-label="Trip summary">
+      <img class="travel-pass__bg"
+           src="{{ url_for('static', filename='images/family-hero.jpeg') }}"
+           alt="" role="presentation">
+      <div class="travel-pass__overlay"></div>
+      <div class="travel-pass__content">
+
+        <div class="tp-top">
+          <div class="tp-identity">
+            <span class="tp-flag" aria-hidden="true">{{ primary_trip_flag }}</span>
+            <div>
+              <h1 class="tp-name">{{ primary_trip.name }}</h1>
+              <p class="tp-dest">{{ primary_trip.destination }}</p>
+            </div>
+          </div>
+          <div class="tp-depart">
+            <p class="tp-depart-label">DEPARTURE</p>
+            <p class="tp-depart-date">{{ primary_trip.start_date.strftime("%b %-d, %Y") }}</p>
+          </div>
+        </div>
+
+        <div class="tp-countdown">
+          {% if trip_state == "upcoming" %}
+            <span class="tp-count-num">{{ hero_countdown }}</span>
+            <div class="tp-count-labels">
+              <span class="tp-count-unit">{{ "DAY" if hero_countdown == 1 else "DAYS" }}</span>
+              <span class="tp-count-sub">REMAINING</span>
+            </div>
+          {% elif trip_state == "active" %}
+            <div class="tp-count-labels">
+              <span class="tp-count-unit tp-count-unit--lg">NOW</span>
+              <span class="tp-count-sub">TRAVELLING</span>
             </div>
           {% else %}
-            <h1 class="hero-title">Mishra Travel Hub</h1>
+            <div class="tp-count-labels">
+              <span class="tp-count-unit tp-count-unit--lg">COMPLETED</span>
+            </div>
           {% endif %}
-          <p class="hero-eyebrow">Family Travel Companion</p>
         </div>
-      </div>
-    </section>
-    <section class="mb-4">
-      <h2 class="quick-actions-heading">Quick Actions</h2>
-      <div class="quick-actions-grid">
-        <a class="quick-action" href="{{ url_for('expenses.create', trip_id=primary_trip.id) if primary_trip else url_for('trips.index') }}">
-          <div class="quick-action__icon quick-action__icon--green"><i class="bi bi-currency-dollar"></i></div>
-          <span class="quick-action__label">Expense</span>
-        </a>
-        <a class="quick-action" href="{{ url_for('shopping.for_trip', trip_id=primary_trip.id) if primary_trip else url_for('shopping.index') }}">
-          <div class="quick-action__icon quick-action__icon--orange"><i class="bi bi-cart-fill"></i></div>
-          <span class="quick-action__label">Shopping</span>
-        </a>
-        <a class="quick-action" href="{{ url_for('documents.create', trip_id=primary_trip.id) if primary_trip else url_for('documents.index') }}">
-          <div class="quick-action__icon quick-action__icon--blue"><i class="bi bi-file-earmark-text-fill"></i></div>
-          <span class="quick-action__label">Document</span>
-        </a>
-        <a class="quick-action" href="{{ url_for('journal.create', trip_id=primary_trip.id) if primary_trip else url_for('journal.index') }}">
-          <div class="quick-action__icon quick-action__icon--purple"><i class="bi bi-journal-text"></i></div>
-          <span class="quick-action__label">Journal</span>
-        </a>
+
+        {% if r %}
+          <div class="tp-bottom">
+            <div class="tp-readiness-wrap">
+              <div class="tp-ring-wrap" aria-label="Trip readiness {{ r.score }}%">
+                <svg class="tp-ring" viewBox="0 0 36 36" aria-hidden="true">
+                  <circle class="tp-ring__bg" cx="18" cy="18" r="15.9"/>
+                  <circle class="tp-ring__bar tp-ring__bar--{{ r.color }}" cx="18" cy="18" r="15.9"
+                    stroke-dasharray="{{ r.score }} {{ 100 - r.score }}"
+                    stroke-dashoffset="25"/>
+                </svg>
+                <span class="tp-ring__pct">{{ r.score }}%</span>
+              </div>
+              <span class="tp-ready-word">READY</span>
+            </div>
+            <span class="tp-status-pill tp-status-pill--{{ r.color }}">{{ r.label }}</span>
+          </div>
+        {% endif %}
+
       </div>
     </section>
 
-    {% if attention_alerts %}
-      <section class="attention-center mb-4">
-        <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
-          <h2 class="h5 mb-0">Needs Attention</h2>
-          <a class="small link-light" href="{{ url_for('trips.detail', trip_id=primary_trip.id) }}">{{ primary_trip.name }}</a>
+  {% else %}
+    <section class="travel-pass travel-pass--empty mb-3" aria-label="Welcome">
+      <img class="travel-pass__bg"
+           src="{{ url_for('static', filename='images/family-hero.jpeg') }}"
+           alt="" role="presentation">
+      <div class="travel-pass__overlay"></div>
+      <div class="travel-pass__content travel-pass__content--center">
+        <h1 class="tp-welcome-title">Mishra Travel Hub</h1>
+        <p class="tp-welcome-sub">Family Travel Companion</p>
+        <a class="btn btn-primary mt-3" href="{{ url_for('trips.create') }}">Add Your First Trip</a>
+      </div>
+    </section>
+  {% endif %}
+
+  {# ============================================================
+     TRIP TIMELINE
+  ============================================================ #}
+  {% if primary_trip_timeline %}
+    <section class="mb-4" aria-label="Trip journey">
+      <div class="trip-timeline">
+        <div class="timeline-track">
+
+          <div class="timeline-node {% if primary_trip and primary_trip.start_date > today %}timeline-node--dim{% else %}timeline-node--current{% endif %}">
+            <div class="tn-dot tn-dot--today"></div>
+            <p class="tn-date">TODAY</p>
+            <p class="tn-title">{{ today.strftime("%b %-d") }}</p>
+          </div>
+
+          {% for item in primary_trip_timeline %}
+            <div class="timeline-connector{% if item.date < today %} timeline-connector--past{% endif %}"></div>
+            <div class="timeline-node{% if item.date < today %} timeline-node--past{% elif item.date == today %} timeline-node--current{% endif %}">
+              <div class="tn-dot{% if item.date < today %} tn-dot--past{% elif item.date == today %} tn-dot--today{% endif %}"></div>
+              <p class="tn-date">{{ item.date.strftime("%b %-d") }}</p>
+              <p class="tn-title">{{ item.title | truncate(18, true, '') }}</p>
+            </div>
+          {% endfor %}
+
         </div>
-        <div class="attention-card">
+      </div>
+    </section>
+  {% endif %}
+
+  {# ============================================================
+     AT A GLANCE
+  ============================================================ #}
+  {% if primary_trip %}
+    {% set r = readiness_map[primary_trip.id] if primary_trip.id in readiness_map else none %}
+    <section class="mb-4" aria-label="At a glance">
+      <p class="section-eyebrow">At a Glance</p>
+      <div class="glance-grid">
+
+        <a class="glance-card" href="{{ url_for('documents.for_trip', trip_id=primary_trip.id) }}">
+          <div class="gc-icon gc-icon--blue"><i class="bi bi-file-earmark-text" aria-hidden="true"></i></div>
+          <p class="gc-value">{{ r.doc_count if r else 0 }}</p>
+          <p class="gc-label">Documents</p>
+          {% if r and r.doc_count > 0 %}
+            <span class="gc-status gc-status--green">Ready</span>
+          {% else %}
+            <span class="gc-status gc-status--dim">Add docs</span>
+          {% endif %}
+        </a>
+
+        <a class="glance-card" href="{{ url_for('shopping.for_trip', trip_id=primary_trip.id) }}">
+          <div class="gc-icon gc-icon--orange"><i class="bi bi-cart" aria-hidden="true"></i></div>
+          {% if r and r.shopping_total > 0 %}
+            <p class="gc-value">{{ r.shopping_completed }}<span class="gc-value-den">/{{ r.shopping_total }}</span></p>
+          {% else %}
+            <p class="gc-value">0</p>
+          {% endif %}
+          <p class="gc-label">Shopping</p>
+          {% if r and r.shopping_total > 0 and r.shopping_completed < r.shopping_total %}
+            <span class="gc-status gc-status--warn">{{ r.shopping_total - r.shopping_completed }} left</span>
+          {% elif r and r.shopping_total > 0 %}
+            <span class="gc-status gc-status--green">Done</span>
+          {% else %}
+            <span class="gc-status gc-status--dim">Add items</span>
+          {% endif %}
+        </a>
+
+        <a class="glance-card" href="{{ url_for('expenses.for_trip', trip_id=primary_trip.id) }}">
+          <div class="gc-icon gc-icon--green"><i class="bi bi-currency-dollar" aria-hidden="true"></i></div>
+          <p class="gc-value">${{ "{:.0f}".format(primary_trip_expense_total) }}</p>
+          <p class="gc-label">Expenses</p>
+          {% if r and r.expense_count > 0 %}
+            <span class="gc-status gc-status--green">{{ r.expense_count }} logged</span>
+          {% else %}
+            <span class="gc-status gc-status--dim">None logged</span>
+          {% endif %}
+        </a>
+
+        <a class="glance-card" href="{{ url_for('journal.for_trip', trip_id=primary_trip.id) }}">
+          <div class="gc-icon gc-icon--purple"><i class="bi bi-journal-text" aria-hidden="true"></i></div>
+          <p class="gc-value">{{ r.journal_count if r else 0 }}</p>
+          <p class="gc-label">Journal</p>
+          {% if r and r.journal_count > 0 %}
+            <span class="gc-status gc-status--green">{{ r.journal_count }} {{ "entry" if r.journal_count == 1 else "entries" }}</span>
+          {% else %}
+            <span class="gc-status gc-status--dim">Start writing</span>
+          {% endif %}
+        </a>
+
+      </div>
+    </section>
+  {% endif %}
+
+  {# ============================================================
+     NEXT UP
+  ============================================================ #}
+  {% if next_itinerary_item %}
+    {% set days_until = (next_itinerary_item.date - today).days %}
+    <section class="next-up-card mb-4" aria-label="Next scheduled event">
+      <p class="section-eyebrow mb-2">Next Up</p>
+      <a class="next-up-inner" href="{{ url_for('trips.itinerary', trip_id=next_itinerary_item.trip_id) }}">
+        <div class="nu-icon" aria-hidden="true"><i class="bi bi-airplane"></i></div>
+        <div class="nu-body">
+          <p class="nu-title">{{ next_itinerary_item.title }}</p>
+          <p class="nu-meta">
+            {{ next_itinerary_item.date.strftime("%b %-d, %Y") }}{% if next_itinerary_item.time %} · {{ next_itinerary_item.time.strftime("%I:%M %p") }}{% endif %}
+            {% if days_until == 0 %} · <span class="nu-badge nu-badge--today">Today</span>
+            {% elif days_until == 1 %} · <span class="nu-badge nu-badge--soon">Tomorrow</span>
+            {% elif days_until > 1 %} · {{ days_until }} days
+            {% endif %}
+          </p>
+        </div>
+        <i class="bi bi-chevron-right nu-arrow" aria-hidden="true"></i>
+      </a>
+    </section>
+  {% endif %}
+
+  {# ============================================================
+     NEEDS ATTENTION
+  ============================================================ #}
+  {% if attention_alerts %}
+    <section class="mb-4" aria-label="Items needing attention">
+      <button class="attention-toggle w-100"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#attentionPanel"
+              aria-expanded="false"
+              aria-controls="attentionPanel">
+        <span>
+          <i class="bi bi-exclamation-triangle attention-toggle__icon" aria-hidden="true"></i>
+          {{ attention_alerts | length }} {{ "item needs" if attention_alerts | length == 1 else "items need" }} attention
+        </span>
+        <i class="bi bi-chevron-down attention-toggle__chevron" aria-hidden="true"></i>
+      </button>
+      <div class="collapse" id="attentionPanel">
+        <div class="attention-card mt-2">
           {% for alert in attention_alerts %}
             <div class="attention-row">
               <div class="attention-icon attention-icon--{{ alert.icon_color }}">
-                <i class="bi {{ alert.icon }}"></i>
+                <i class="bi {{ alert.icon }}" aria-hidden="true"></i>
               </div>
               <div class="attention-text">
                 <p class="attention-text__title">{{ alert.message }}</p>
@@ -111,139 +239,53 @@
             </div>
           {% endfor %}
         </div>
-      </section>
-    {% endif %}
-
-    <div class="row g-3 mb-4">
-      <div class="col-lg-5">
-        <section class="dashboard-card h-100">
-          <p class="text-secondary mb-1">Next Trip</p>
-          {% if next_trip %}
-            <h2 class="h4 mb-2">{{ next_trip.name }}</h2>
-            <p class="mb-1">{{ next_trip.destination }}</p>
-            <p class="text-secondary mb-3">{{ next_trip.start_date.strftime("%b %-d, %Y") }}</p>
-            <p class="display-6 mb-0">{{ countdown_label(next_trip_countdown) }}</p>
-            <p class="text-secondary mt-3 mb-0">{{ next_trip_shopping_remaining }} of {{ next_trip_shopping_total }} shopping items remaining</p>
-          {% else %}
-            <h2 class="h4 mb-2">No upcoming trip</h2>
-            <p class="text-secondary mb-3">Create a trip to start the countdown.</p>
-            <a class="btn btn-primary btn-sm" href="{{ url_for('trips.create') }}">Add Trip</a>
-          {% endif %}
-        </section>
       </div>
-      <div class="col-lg-7">
-        <section class="dashboard-card h-100">
-          <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
-            <h2 class="h5 mb-0">Next Itinerary Event</h2>
-            {% if next_itinerary_item %}
-              <a class="small link-light" href="{{ url_for('trips.itinerary', trip_id=next_itinerary_item.trip_id) }}">View itinerary</a>
-            {% endif %}
-          </div>
-          {% if next_itinerary_item %}
-            <p class="text-secondary small mb-1">{{ next_itinerary_item.trip.name }}</p>
-            <p class="h4 mb-2">{{ next_itinerary_item.title }}</p>
-            <p class="mb-2">{{ next_itinerary_item.date.strftime("%b %-d, %Y") }}{% if next_itinerary_item.time %} at {{ next_itinerary_item.time.strftime("%I:%M %p") }}{% endif %}</p>
-            {% if next_itinerary_item.description %}
-              <p class="text-secondary mb-0 preserve-lines">{{ next_itinerary_item.description }}</p>
-            {% endif %}
-          {% else %}
-            <p class="text-secondary mb-0">Upcoming itinerary events will appear here.</p>
-          {% endif %}
-        </section>
-      </div>
-    </div>
-
-    <div class="row g-3 mb-4">
-      <div class="col-md-6">
-        <section class="dashboard-card h-100">
-          <p class="text-secondary mb-1">Total Spend</p>
-          <p class="display-6 mb-0">${{ "{:.2f}".format(total_expense_spend) }}</p>
-          <p class="text-secondary mt-3 mb-0">{{ total_expense_count }} {{ "expense" if total_expense_count == 1 else "expenses" }} logged</p>
-          {% if total_expense_count %}
-            <a class="btn btn-outline-light btn-sm mt-3" href="{{ url_for('expenses.index') }}">View Expenses</a>
-          {% else %}
-            <p class="text-secondary small mb-0 mt-3">Expenses logged across all trips appear here.</p>
-          {% endif %}
-        </section>
-      </div>
-      <div class="col-md-6">
-        <section class="dashboard-card h-100">
-          <p class="text-secondary mb-1">Add Expense</p>
-          {% if primary_trip %}
-            <p class="h4 mb-3">{{ primary_trip.name }}</p>
-            <a class="btn btn-primary btn-sm" href="{{ url_for('expenses.create', trip_id=primary_trip.id) }}">Log Expense</a>
-          {% else %}
-            <p class="text-secondary mb-3">Create a trip to start logging expenses.</p>
-            <a class="btn btn-primary btn-sm" href="{{ url_for('trips.create') }}">Add Trip</a>
-          {% endif %}
-        </section>
-      </div>
-    </div>
-
-    <div class="row g-3 mb-4">
-      <div class="col-md-6">
-        <section class="dashboard-card h-100">
-          <p class="text-secondary mb-1">Journal</p>
-          <p class="display-6 mb-0">{{ total_journal_count }}</p>
-          <p class="text-secondary mt-3 mb-0">{{ "entry" if total_journal_count == 1 else "entries" }} logged</p>
-          {% if recent_journal_entry %}
-            <p class="small mt-3 mb-1 fw-semibold">{{ recent_journal_entry.title }}</p>
-            <p class="text-secondary small mb-0">{{ recent_journal_entry.entry_date.strftime("%b %-d, %Y") }} · {{ recent_journal_entry.trip.name }}</p>
-            <a class="btn btn-outline-light btn-sm mt-3" href="{{ url_for('journal.for_trip', trip_id=recent_journal_entry.trip_id) }}">View Journal</a>
-          {% else %}
-            <p class="text-secondary small mb-0 mt-3">Journal entries across all trips appear here.</p>
-          {% endif %}
-        </section>
-      </div>
-      <div class="col-md-6">
-        <section class="dashboard-card h-100">
-          <p class="text-secondary mb-1">Write Entry</p>
-          {% if primary_trip %}
-            <p class="h4 mb-3">{{ primary_trip.name }}</p>
-            <a class="btn btn-primary btn-sm" href="{{ url_for('journal.create', trip_id=primary_trip.id) }}">Add Journal Entry</a>
-          {% else %}
-            <p class="text-secondary mb-3">Create a trip to start writing journal entries.</p>
-            <a class="btn btn-primary btn-sm" href="{{ url_for('trips.create') }}">Add Trip</a>
-          {% endif %}
-        </section>
-      </div>
-    </div>
-
-    <section class="mb-4">
-      <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
-        <h2 class="h5 mb-0">Active Trips</h2>
-        <span class="text-secondary small">{{ active_trips | length }}</span>
-      </div>
-      {% if active_trips %}
-        <div class="dashboard-grid">
-          {% for row in active_trips %}
-            {{ trip_summary(row, today, readiness_map) }}
-          {% endfor %}
-        </div>
-      {% else %}
-        <div class="dashboard-card">
-          <p class="text-secondary mb-0">No active trips today.</p>
-        </div>
-      {% endif %}
     </section>
+  {% endif %}
 
-    <section>
-      <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
-        <h2 class="h5 mb-0">Upcoming Trips</h2>
-        <a class="small link-light" href="{{ url_for('trips.index') }}">View all</a>
+  {# ============================================================
+     ALL TRIPS — compact list
+  ============================================================ #}
+  {% set all_trips = active_trips + upcoming_trips %}
+  {% if all_trips %}
+    <section class="mb-4" aria-label="All trips">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <p class="section-eyebrow mb-0">All Trips</p>
+        <a class="small link-secondary" href="{{ url_for('trips.index') }}">View all</a>
       </div>
-      {% if upcoming_trips %}
-        <div class="dashboard-grid">
-          {% for row in upcoming_trips %}
-            {{ trip_summary(row, today, readiness_map) }}
-          {% endfor %}
-        </div>
-      {% else %}
-        <div class="dashboard-card">
-          <p class="text-secondary mb-3">No upcoming trips yet.</p>
-          <a class="btn btn-primary btn-sm" href="{{ url_for('trips.create') }}">Add Trip</a>
-        </div>
-      {% endif %}
+      <div class="trips-compact-list">
+        {% for row in all_trips %}
+          {% set trip = row.trip %}
+          {% set cd = (trip.start_date - today).days %}
+          {% set tr = readiness_map[trip.id] if trip.id in readiness_map else none %}
+          <a class="trip-compact-row" href="{{ url_for('trips.detail', trip_id=trip.id) }}">
+            <div class="tcr-body">
+              <p class="tcr-name">{{ trip.name }}</p>
+              <p class="tcr-meta">{{ trip.destination }} · {{ trip.start_date.strftime("%b %-d, %Y") }}</p>
+            </div>
+            <div class="tcr-right">
+              {% if cd > 1 %}
+                <span class="tcr-badge">{{ cd }}d</span>
+              {% elif cd == 1 %}
+                <span class="tcr-badge tcr-badge--soon">Tomorrow</span>
+              {% elif cd == 0 %}
+                <span class="tcr-badge tcr-badge--today">Today</span>
+              {% elif trip.end_date >= today %}
+                <span class="tcr-badge tcr-badge--active">Active</span>
+              {% else %}
+                <span class="tcr-badge tcr-badge--past">Past</span>
+              {% endif %}
+              {% if tr %}
+                <div class="tcr-bar">
+                  <div class="tcr-bar-fill tcr-bar-fill--{{ tr.color }}" style="width:{{ tr.score }}%"></div>
+                </div>
+              {% endif %}
+            </div>
+          </a>
+        {% endfor %}
+      </div>
     </section>
-  </div>
+  {% endif %}
+
+</div>
 {% endblock %}

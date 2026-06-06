@@ -24,10 +24,15 @@
         <div class="mb-2">
           <span class="badge text-bg-{{ readiness.color }}">{{ readiness.label }}</span>
         </div>
-        <div class="progress mb-1" style="height: 4px; width: 120px;" role="progressbar" aria-valuenow="{{ readiness.score }}" aria-valuemin="0" aria-valuemax="100">
-          <div class="progress-bar bg-{{ readiness.color }}" style="width: {{ readiness.score }}%"></div>
+        <div class="detail-ring-wrap" aria-label="Trip readiness {{ readiness.score }}%">
+          <svg class="detail-ring" viewBox="0 0 36 36" aria-hidden="true">
+            <circle class="tp-ring__bg" cx="18" cy="18" r="15.9"/>
+            <circle class="tp-ring__bar tp-ring__bar--{{ readiness.color }}" cx="18" cy="18" r="15.9"
+              stroke-dasharray="{{ readiness.score }} {{ 100 - readiness.score }}"
+              stroke-dashoffset="25"/>
+          </svg>
+          <span class="detail-ring__pct">{{ readiness.score }}%</span>
         </div>
-        <p class="text-secondary small mb-0">{{ readiness.score }}% ready</p>
       </div>
     </div>
     <div class="trip-detail-header__actions">
