@@ -164,7 +164,8 @@ def itinerary(trip_id):
         return redirect(url_for("trips.index"))
 
     items = itinerary_items_query(trip.id).all()
-    return render_template("trips/itinerary.html", title="Itinerary", trip=trip, items=items)
+    today = date.today()
+    return render_template("trips/itinerary.html", title="Itinerary", trip=trip, items=items, today=today)
 
 
 @bp.route("/<int:trip_id>/itinerary/new", methods=["GET", "POST"])
