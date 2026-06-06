@@ -1,5 +1,5 @@
 from flask import flash, redirect, render_template, url_for
-from sqlalchemy import func
+from sqlalchemy import case, func
 
 from app.extensions import db
 from app.models import ShoppingItem, Trip
@@ -10,14 +10,26 @@ from .forms import DeleteShoppingItemForm, ShoppingItemForm, ToggleShoppingItemF
 
 @bp.route("/")
 def index():
+    total_count = func.count(ShoppingItem.id).label("total_count")
+    completed_count = func.count(
+        case((ShoppingItem.completed.is_(True), ShoppingItem.id))
+    ).label("completed_count")
     trip_rows = (
-        db.session.query(Trip, func.count(ShoppingItem.id))
+        db.session.query(Trip, total_count, completed_count)
         .outerjoin(ShoppingItem)
         .group_by(Trip.id)
         .order_by(Trip.start_date.asc(), Trip.name.asc())
         .all()
     )
-    return render_template("shopping/index.html", title="Shopping", trip_rows=trip_rows)
+    sample_items = {}
+    for trip, _total, _completed in trip_rows:
+        sample_items[trip.id] = (
+            ShoppingItem.query.filter_by(trip_id=trip.id)
+            .order_by(ShoppingItem.completed.asc(), ShoppingItem.id.asc())
+            .limit(4)
+            .all()
+        )
+    return render_template("shopping/index.html", title="Shopping", trip_rows=trip_rows, sample_items=sample_items)
 
 
 @bp.route("/trip/<int:trip_id>")

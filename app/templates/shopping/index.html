@@ -1,30 +1,64 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
-    <div>
-      <h1 class="h3 mb-1">Shopping</h1>
-      <p class="text-secondary mb-0">Packing, gifts, and travel purchases by trip.</p>
-    </div>
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0">Shopping</h1>
     <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.index') }}">Trips</a>
   </div>
 
   {% if trip_rows %}
-    <div class="d-grid gap-3 trip-list">
-      {% for trip, item_count in trip_rows %}
-        <article class="trip-card">
-          <div class="d-flex flex-column flex-sm-row justify-content-between gap-3">
+    <div class="d-grid gap-3">
+      {% for trip, total, completed in trip_rows %}
+        {% set pct = ((completed / total * 100) | round | int) if total > 0 else 0 %}
+        {% set remaining = total - completed %}
+        {% set items = sample_items[trip.id] %}
+
+        <div class="shop-trip-card">
+          <div class="shop-trip-header">
             <div>
-              <h2 class="h5 mb-1">{{ trip.name }}</h2>
-              <p class="text-secondary mb-1">{{ trip.destination }}</p>
-              <p class="small mb-0">{{ item_count }} {{ "item" if item_count == 1 else "items" }}</p>
+              <p class="shop-trip-name">{{ trip.name }}</p>
+              <p class="shop-trip-dest">{{ trip.destination }}</p>
             </div>
-            <div class="d-flex flex-wrap align-items-start gap-2">
-              <a class="btn btn-outline-light btn-sm" href="{{ url_for('shopping.for_trip', trip_id=trip.id) }}">Manage</a>
-              <a class="btn btn-primary btn-sm" href="{{ url_for('shopping.create', trip_id=trip.id) }}">Add Item</a>
+            <a class="shop-add-link" href="{{ url_for('shopping.create', trip_id=trip.id) }}">+ Add</a>
+          </div>
+
+          <div class="shop-progress-block">
+            <div class="shopping-donut-wrapper" role="img" aria-label="Shopping {{ pct }}% complete">
+              <svg class="shopping-donut" viewBox="0 0 36 36" aria-hidden="true">
+                <circle class="shopping-donut__bg" cx="18" cy="18" r="15.9"/>
+                <circle class="shopping-donut__bar" cx="18" cy="18" r="15.9"
+                  stroke-dasharray="{{ pct }} {{ 100 - pct }}"
+                  stroke-dashoffset="25"/>
+              </svg>
+              <span class="shopping-donut__pct" aria-hidden="true">{{ pct }}%</span>
+            </div>
+            <div class="shop-progress-text">
+              <p class="shop-progress-count">{{ completed }}<span style="font-size:1rem;font-weight:500;color:rgba(255,255,255,0.4)">/{{ total }}</span></p>
+              <p class="shop-progress-label">{{ "item packed" if total == 1 else "items packed" }}</p>
             </div>
           </div>
-        </article>
+
+          {% if items %}
+            <div class="shop-checklist">
+              {% for item in items %}
+                <div class="shop-checklist-item{% if item.completed %} is-done{% endif %}">
+                  <i class="bi {% if item.completed %}bi-check-circle-fill shop-check-icon shop-check-icon--done{% else %}bi-circle shop-check-icon shop-check-icon--pending{% endif %}" aria-hidden="true"></i>
+                  {{ item.item_name }}
+                </div>
+              {% endfor %}
+            </div>
+            {% if total > 4 %}
+              <p class="shop-more">+{{ total - 4 }} more item{{ "" if (total - 4) == 1 else "s" }}</p>
+            {% endif %}
+          {% endif %}
+
+          <div class="shop-footer">
+            <span class="shop-stat">{{ remaining }} remaining</span>
+            <a class="shop-cta-link" href="{{ url_for('shopping.for_trip', trip_id=trip.id) }}">
+              Manage Checklist <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
       {% endfor %}
     </div>
   {% else %}

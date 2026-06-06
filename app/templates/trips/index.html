@@ -1,41 +1,109 @@
 {% extends "base.html" %}
 
+{% macro trip_flag(destination) %}
+  {%- set d = destination | lower -%}
+  {%- if "united states" in d or "usa" in d -%}🇺🇸
+  {%- elif "united kingdom" in d or "uk" in d or "england" in d -%}🇬🇧
+  {%- elif "india" in d -%}🇮🇳
+  {%- elif "france" in d -%}🇫🇷
+  {%- elif "germany" in d -%}🇩🇪
+  {%- elif "italy" in d -%}🇮🇹
+  {%- elif "spain" in d -%}🇪🇸
+  {%- elif "japan" in d -%}🇯🇵
+  {%- elif "australia" in d -%}🇦🇺
+  {%- elif "canada" in d -%}🇨🇦
+  {%- elif "thailand" in d -%}🇹🇭
+  {%- elif "singapore" in d -%}🇸🇬
+  {%- elif "dubai" in d or "uae" in d -%}🇦🇪
+  {%- elif "switzerland" in d -%}🇨🇭
+  {%- elif "brazil" in d -%}🇧🇷
+  {%- elif "mexico" in d -%}🇲🇽
+  {%- elif "new zealand" in d -%}🇳🇿
+  {%- else -%}✈️
+  {%- endif -%}
+{% endmacro %}
+
 {% block content %}
-  <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 mb-4">
-    <div>
-      <h1 class="h3 mb-1">Trips</h1>
-      <p class="text-secondary mb-0">Plan and track family travel.</p>
-    </div>
-    <a class="btn btn-primary" href="{{ url_for('trips.create') }}">Create Trip</a>
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0">Trips</h1>
+    <a class="btn btn-primary btn-sm" href="{{ url_for('trips.create') }}">+ New Trip</a>
   </div>
 
   {% if trips %}
-    <div class="trip-list d-grid gap-3">
+    <div class="d-grid gap-3">
       {% for trip in trips %}
+        {% set r = readiness_map[trip.id] %}
+        {% set cd = (trip.start_date - today).days %}
+        {% set is_active = trip.start_date <= today and trip.end_date >= today %}
         {% set is_past = trip.end_date < today %}
-        {% set is_active = trip.start_date <= today <= trip.end_date %}
-        <article class="trip-card">
-          <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
-            <div>
-              <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-                <h2 class="h5 mb-0">{{ trip.name }}</h2>
-                {% if is_active %}
-                  <span class="badge text-bg-success">Active</span>
-                {% elif is_past %}
-                  <span class="badge text-bg-secondary">Past</span>
-                {% else %}
-                  <span class="badge text-bg-info">Upcoming</span>
-                {% endif %}
+
+        <a class="trip-index-card" href="{{ url_for('trips.detail', trip_id=trip.id) }}">
+
+          <div class="tic-top">
+            <div class="tic-identity">
+              <span class="tic-flag" aria-hidden="true">{{ trip_flag(trip.destination) }}</span>
+              <div class="tic-names">
+                <p class="tic-name">{{ trip.name }}</p>
+                <p class="tic-dest">{{ trip.destination }}</p>
               </div>
-              <p class="mb-2 text-secondary">{{ trip.destination }}</p>
-              <p class="small mb-0">{{ trip.start_date.strftime("%b %-d, %Y") }} to {{ trip.end_date.strftime("%b %-d, %Y") }}</p>
             </div>
-            <div class="d-flex flex-wrap align-items-start gap-2">
-              <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.detail', trip_id=trip.id) }}">View</a>
-              <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.edit', trip_id=trip.id) }}">Edit</a>
+            {% if is_active %}
+              <span class="tic-pill tic-pill--active">Active</span>
+            {% elif is_past %}
+              <span class="tic-pill tic-pill--past">Past</span>
+            {% else %}
+              <span class="tic-pill tic-pill--info">Upcoming</span>
+            {% endif %}
+          </div>
+
+          <div class="tic-center">
+            <div class="tic-countdown">
+              {% if is_active %}
+                <span class="tic-count-label">Now Travelling</span>
+              {% elif is_past %}
+                <span class="tic-count-label">Completed</span>
+              {% elif cd == 0 %}
+                <span class="tic-count-label">Departs Today</span>
+              {% elif cd == 1 %}
+                <span class="tic-count-label">Departs Tomorrow</span>
+              {% else %}
+                <span class="tic-count-num">{{ cd }}</span>
+                <div class="tic-count-labels">
+                  <span class="tic-count-unit">{{ "DAY" if cd == 1 else "DAYS" }}</span>
+                  <span class="tic-count-sub">TO GO</span>
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="tic-readiness">
+              <div class="tic-ring-wrap" aria-label="Trip readiness {{ r.score }}%">
+                <svg class="tic-ring" viewBox="0 0 36 36" aria-hidden="true">
+                  <circle class="tp-ring__bg" cx="18" cy="18" r="15.9"/>
+                  <circle class="tp-ring__bar tp-ring__bar--{{ r.color }}" cx="18" cy="18" r="15.9"
+                    stroke-dasharray="{{ r.score }} {{ 100 - r.score }}"
+                    stroke-dashoffset="25"/>
+                </svg>
+                <span class="tic-ring__pct">{{ r.score }}%</span>
+              </div>
+              <div class="tic-ready-label">
+                <span class="tic-ready-pct">{{ r.score }}%</span>
+                <span class="tic-ready-word">READY</span>
+              </div>
             </div>
           </div>
-        </article>
+
+          <div class="tic-footer">
+            <p class="tic-meta">
+              {{ r.itinerary_count }} itinerary
+              <span class="tic-meta-sep">·</span>
+              {{ r.doc_count }} docs
+              <span class="tic-meta-sep">·</span>
+              {{ r.shopping_total }} items
+            </p>
+            <i class="bi bi-chevron-right tic-arrow" aria-hidden="true"></i>
+          </div>
+
+        </a>
       {% endfor %}
     </div>
   {% else %}

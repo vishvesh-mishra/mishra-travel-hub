@@ -19,7 +19,8 @@ def index():
         Trip.start_date.asc(),
         Trip.end_date.asc(),
     ).all()
-    return render_template("trips/index.html", title="Trips", trips=trips, today=today)
+    readiness_map = {trip.id: compute_readiness(trip.id) for trip in trips}
+    return render_template("trips/index.html", title="Trips", trips=trips, today=today, readiness_map=readiness_map)
 
 
 @bp.route("/new", methods=["GET", "POST"])

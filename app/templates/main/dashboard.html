@@ -247,7 +247,7 @@
      ALL TRIPS — compact list
   ============================================================ #}
   {% set all_trips = active_trips + upcoming_trips %}
-  {% if all_trips %}
+  {% if all_trips | length > 1 %}
     <section class="mb-4" aria-label="All trips">
       <div class="d-flex align-items-center justify-content-between mb-3">
         <p class="section-eyebrow mb-0">All Trips</p>
