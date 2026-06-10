@@ -108,8 +108,27 @@ class JournalEntry(db.Model):
     title = db.Column(db.String(160), nullable=False)
     content = db.Column(db.Text)
     entry_date = db.Column(db.Date, nullable=False)
+    location = db.Column(db.String(200))
 
     trip = db.relationship("Trip", back_populates="journal_entries")
+    photos = db.relationship(
+        "MemoryPhoto", back_populates="entry", cascade="all, delete-orphan",
+        order_by="MemoryPhoto.id",
+    )
+
+
+class MemoryPhoto(db.Model):
+    __tablename__ = "memory_photo"
+
+    id = db.Column(db.Integer, primary_key=True)
+    journal_entry_id = db.Column(
+        db.Integer, db.ForeignKey("journal_entry.id"), nullable=False
+    )
+    filename = db.Column(db.String(255), nullable=False)  # relative to static/uploads/memories/
+    taken_date = db.Column(db.Date)                       # from EXIF when available
+    created_at = db.Column(db.DateTime(timezone=True), default=utc_now, nullable=False)
+
+    entry = db.relationship("JournalEntry", back_populates="photos")
 
 
 class TravelGuideEntry(db.Model):

@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileAllowed, MultipleFileField
 from wtforms import DateField, StringField, SubmitField, TextAreaField
-from wtforms.validators import DataRequired, Length, ValidationError
+from wtforms.validators import DataRequired, Length, Optional, ValidationError
 
 
 class JournalEntryForm(FlaskForm):
@@ -23,6 +24,19 @@ class JournalEntryForm(FlaskForm):
             Length(max=10000, message="Content must be 10000 characters or fewer."),
         ],
     )
+    location = StringField(
+        "Location",
+        validators=[
+            Optional(),
+            Length(max=200, message="Location must be 200 characters or fewer."),
+        ],
+    )
+    photos = MultipleFileField(
+        "Photos",
+        validators=[
+            FileAllowed(["jpg", "jpeg", "png", "webp", "heic"], "Images only."),
+        ],
+    )
     submit = SubmitField("Save Entry")
 
     def __init__(self, *args, trip=None, **kwargs):
@@ -37,3 +51,7 @@ class JournalEntryForm(FlaskForm):
 
 class DeleteJournalEntryForm(FlaskForm):
     submit = SubmitField("Delete Entry")
+
+
+class DeletePhotoForm(FlaskForm):
+    submit = SubmitField("Remove Photo")

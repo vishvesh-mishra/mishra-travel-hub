@@ -68,27 +68,35 @@
     </div>
 
     <nav class="bottom-nav d-md-none" aria-label="Mobile navigation">
-      <a class="bottom-nav__item {% if request.endpoint and request.endpoint.startswith('main.') %}active{% endif %}" href="{{ url_for('main.dashboard') }}">
-        <i class="bi {% if request.endpoint and request.endpoint.startswith('main.') %}bi-house-fill{% else %}bi-house{% endif %}"></i>
+      <a class="bottom-nav__item {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">
+        <i class="bi {% if request.endpoint == 'main.dashboard' %}bi-house-fill{% else %}bi-house{% endif %}"></i>
         <span>Home</span>
+      </a>
+      <a class="bottom-nav__item {% if request.endpoint == 'main.today_view' %}active{% endif %}" href="{{ url_for('main.today_view') }}">
+        <i class="bi {% if request.endpoint == 'main.today_view' %}bi-sun-fill{% else %}bi-sun{% endif %}"></i>
+        <span>Today</span>
+      </a>
+      <a class="bottom-nav__item {% if request.endpoint == 'main.wallet' %}active{% endif %}" href="{{ url_for('main.wallet') }}">
+        <i class="bi {% if request.endpoint == 'main.wallet' %}bi-wallet-fill{% else %}bi-wallet2{% endif %}"></i>
+        <span>Wallet</span>
       </a>
       <a class="bottom-nav__item {% if request.endpoint and request.endpoint.startswith('trips.') %}active{% endif %}" href="{{ url_for('trips.index') }}">
         <i class="bi {% if request.endpoint and request.endpoint.startswith('trips.') %}bi-airplane-fill{% else %}bi-airplane{% endif %}"></i>
         <span>Trips</span>
-      </a>
-      <a class="bottom-nav__item {% if request.endpoint and request.endpoint.startswith('shopping.') %}active{% endif %}" href="{{ url_for('shopping.index') }}">
-        <i class="bi {% if request.endpoint and request.endpoint.startswith('shopping.') %}bi-cart-fill{% else %}bi-cart{% endif %}"></i>
-        <span>Shopping</span>
-      </a>
-      <a class="bottom-nav__item {% if request.endpoint and request.endpoint.startswith('documents.') %}active{% endif %}" href="{{ url_for('documents.index') }}">
-        <i class="bi {% if request.endpoint and request.endpoint.startswith('documents.') %}bi-file-earmark-text-fill{% else %}bi-file-earmark-text{% endif %}"></i>
-        <span>Documents</span>
       </a>
       <a class="bottom-nav__item {% if request.endpoint == 'main.hub' %}active{% endif %}" href="{{ url_for('main.hub') }}">
         <i class="bi {% if request.endpoint == 'main.hub' %}bi-compass-fill{% else %}bi-compass{% endif %}"></i>
         <span>Hub</span>
       </a>
     </nav>
+
+    {# Photo lightbox overlay #}
+    <div class="mth-lightbox" id="mthLightbox" role="dialog" aria-modal="true" aria-label="Photo viewer" hidden>
+      <img class="mth-lightbox__img" id="mthLightboxImg" src="" alt="Full size photo">
+      <button class="mth-lightbox__close" type="button" aria-label="Close photo viewer">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+    </div>
     {% endif %}
 
     <script
@@ -235,6 +243,61 @@
             if (processed > 0) setTimeout(function () { window.location.reload(); }, 600);
           });
         };
+
+        /* ----------------------------------------------------------
+           WEB SHARE — memory + story share buttons (data-share-text)
+           Falls back to clipboard copy on unsupported browsers.
+           ---------------------------------------------------------- */
+        document.addEventListener('click', function (e) {
+          var btn = e.target.closest('[data-share-text]');
+          if (!btn) return;
+          window.mthHapticMedium();
+          var payload = {
+            title: btn.getAttribute('data-share-title') || document.title,
+            text: btn.getAttribute('data-share-text'),
+          };
+          if (navigator.share) {
+            navigator.share(payload).catch(function () {});
+          } else if (navigator.clipboard) {
+            navigator.clipboard.writeText(payload.text).then(function () {
+              var icon = btn.querySelector('i');
+              if (icon) {
+                icon.className = 'bi bi-check-lg';
+                setTimeout(function () { icon.className = 'bi bi-share'; }, 1600);
+              }
+            });
+          }
+        });
+
+        /* ----------------------------------------------------------
+           PHOTO LIGHTBOX — tap photo to view full screen
+           ---------------------------------------------------------- */
+        var lightbox    = document.getElementById('mthLightbox');
+        var lightboxImg = document.getElementById('mthLightboxImg');
+
+        document.addEventListener('click', function (e) {
+          var photoBtn = e.target.closest('[data-lightbox-src]');
+          if (photoBtn && lightbox) {
+            lightboxImg.src = photoBtn.getAttribute('data-lightbox-src');
+            lightbox.hidden = false;
+            document.body.style.overflow = 'hidden';
+            window.mthHapticLight();
+            return;
+          }
+          if (lightbox && !lightbox.hidden && e.target.closest('.mth-lightbox')) {
+            lightbox.hidden = true;
+            lightboxImg.src = '';
+            document.body.style.overflow = '';
+          }
+        });
+
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && lightbox && !lightbox.hidden) {
+            lightbox.hidden = true;
+            lightboxImg.src = '';
+            document.body.style.overflow = '';
+          }
+        });
 
         /* Intercept shopping toggle forms when offline (data-offline-ok) */
         document.addEventListener('submit', function (e) {

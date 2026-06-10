@@ -3,10 +3,19 @@ from types import SimpleNamespace
 
 from flask import current_app, render_template, send_from_directory, url_for
 from sqlalchemy import and_, case, func, or_
+from sqlalchemy.orm import joinedload
 
 from app.extensions import db
-from app.models import Document, Expense, ItineraryItem, JournalEntry, ShoppingItem, Trip
-from app.utils import compute_readiness
+from app.models import (
+    Document,
+    Expense,
+    ItineraryItem,
+    JournalEntry,
+    ShoppingItem,
+    TravelGuideEntry,
+    Trip,
+)
+from app.utils import compute_readiness, memory_upload_dir
 
 from . import bp
 
@@ -67,6 +76,130 @@ def hub():
         db_size=db_size_str,
         is_production=is_production,
     )
+
+
+@bp.route("/today")
+def today_view():
+    today = date.today()
+    now_time = datetime.now().time()
+
+    # Current trip: active first, else next upcoming
+    current_trip = (
+        Trip.query.filter(Trip.start_date <= today, Trip.end_date >= today)
+        .order_by(Trip.start_date.asc())
+        .first()
+    )
+    trip_state = "active" if current_trip else None
+    if current_trip is None:
+        current_trip = (
+            Trip.query.filter(Trip.start_date > today)
+            .order_by(Trip.start_date.asc())
+            .first()
+        )
+        trip_state = "upcoming" if current_trip else None
+
+    todays_items = []
+    next_event = None
+    next_event_minutes = None
+    hotels = []
+    transfers = []
+    countdown_days = None
+
+    if current_trip:
+        countdown_days = (current_trip.start_date - today).days
+
+        todays_items = (
+            ItineraryItem.query
+            .filter_by(trip_id=current_trip.id, date=today)
+            .order_by(ItineraryItem.time.asc(), ItineraryItem.id.asc())
+            .all()
+        )
+
+        # Next event: today with time still ahead, else next future item
+        next_event = (
+            ItineraryItem.query
+            .filter(
+                ItineraryItem.trip_id == current_trip.id,
+                or_(
+                    ItineraryItem.date > today,
+                    and_(
+                        ItineraryItem.date == today,
+                        or_(ItineraryItem.time.is_(None), ItineraryItem.time >= now_time),
+                    ),
+                ),
+            )
+            .order_by(ItineraryItem.date.asc(), ItineraryItem.time.asc(), ItineraryItem.id.asc())
+            .first()
+        )
+        if next_event and next_event.date == today and next_event.time:
+            now_minutes = now_time.hour * 60 + now_time.minute
+            ev_minutes = next_event.time.hour * 60 + next_event.time.minute
+            next_event_minutes = max(0, ev_minutes - now_minutes)
+
+        guide_rows = (
+            TravelGuideEntry.query
+            .filter(
+                TravelGuideEntry.trip_id == current_trip.id,
+                TravelGuideEntry.section.in_(["hotel", "transfer"]),
+            )
+            .order_by(TravelGuideEntry.sort_order, TravelGuideEntry.id)
+            .all()
+        )
+        hotels    = [g for g in guide_rows if g.section == "hotel"]
+        transfers = [g for g in guide_rows if g.section == "transfer"]
+
+    return render_template(
+        "main/today.html",
+        title="Today",
+        today=today,
+        current_trip=current_trip,
+        trip_state=trip_state,
+        countdown_days=countdown_days,
+        todays_items=todays_items,
+        next_event=next_event,
+        next_event_minutes=next_event_minutes,
+        hotels=hotels,
+        transfers=transfers,
+        now_time=now_time,
+    )
+
+
+@bp.route("/wallet")
+def wallet():
+    documents = (
+        Document.query
+        .options(joinedload(Document.trip))
+        .join(Trip)
+        .order_by(Trip.start_date.desc(), Document.category.asc(), Document.id.asc())
+        .all()
+    )
+    category_meta = {
+        "Passport":     ("bi-person-badge",        "passport"),
+        "Visa":         ("bi-patch-check",         "visa"),
+        "Flight":       ("bi-airplane",            "flight"),
+        "Hotel":        ("bi-building",            "hotel"),
+        "Match Ticket": ("bi-ticket-perforated",   "ticket"),
+        "Insurance":    ("bi-shield-check",        "insurance"),
+        "Other":        ("bi-file-earmark",        "other"),
+    }
+    return render_template(
+        "main/wallet.html",
+        title="Travel Wallet",
+        documents=documents,
+        category_meta=category_meta,
+    )
+
+
+@bp.route("/media/memories/<path:filename>")
+def memory_photo(filename):
+    """Serve uploaded memory photos from the persistent upload directory.
+
+    Uploads live outside the app tree (Render disk at /data) so they survive
+    deploys; send_from_directory also guards against path traversal.
+    """
+    resp = send_from_directory(memory_upload_dir(), filename)
+    resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    return resp
 
 
 @bp.route("/sw.js")

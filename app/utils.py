@@ -1,6 +1,23 @@
+import os
+
+from flask import current_app
 from sqlalchemy import text
 
 from app.extensions import db
+
+# Render persistent disk mount (see render.yaml). When present, uploads
+# survive deploys; otherwise fall back to the local static folder in dev.
+PERSISTENT_ROOT = "/data"
+
+
+def memory_upload_dir():
+    """Absolute path for memory photo uploads; created on first use."""
+    if os.path.isdir(PERSISTENT_ROOT):
+        path = os.path.join(PERSISTENT_ROOT, "uploads", "memories")
+    else:
+        path = os.path.join(current_app.static_folder, "uploads", "memories")
+    os.makedirs(path, exist_ok=True)
+    return path
 
 
 def compute_readiness(trip_id):

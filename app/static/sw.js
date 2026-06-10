@@ -1,7 +1,7 @@
 // Mishra Travel Hub — Service Worker
 // Phase 6A: Full offline-first caching strategy
 
-const CACHE_VERSION  = 'v6';
+const CACHE_VERSION  = 'v8';
 const STATIC_CACHE   = `mth-static-${CACHE_VERSION}`;
 const PAGES_CACHE    = `mth-pages-${CACHE_VERSION}`;
 const OFFLINE_URL    = '/static/offline.html';
@@ -58,9 +58,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Local static assets (/static/…):
-  // Cache-first — near-permanent, only refresh when cache is cold
-  if (url.pathname.startsWith('/static/')) {
+  // Local static assets (/static/…) and uploaded memory photos (/media/…):
+  // Cache-first — filenames are immutable (uuid), only fetch when cache is cold
+  if (url.pathname.startsWith('/static/') || url.pathname.startsWith('/media/')) {
     event.respondWith(cacheFirst(request, STATIC_CACHE));
     return;
   }

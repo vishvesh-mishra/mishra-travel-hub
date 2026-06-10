@@ -1,10 +1,19 @@
-from datetime import date
+from datetime import date, timedelta
 
 from flask import flash, redirect, render_template, url_for
 from sqlalchemy import case, func
+from sqlalchemy.orm import selectinload
 
 from app.extensions import db
-from app.models import Document, Expense, ItineraryItem, JournalEntry, ShoppingItem, Trip
+from app.models import (
+    Document,
+    Expense,
+    ItineraryItem,
+    JournalEntry,
+    ShoppingItem,
+    TravelGuideEntry,
+    Trip,
+)
 from app.utils import compute_readiness
 
 from . import bp
@@ -255,6 +264,78 @@ def delete_itinerary_item(trip_id, item_id):
         trip=trip,
         item=item,
         form=form,
+    )
+
+
+@bp.route("/<int:trip_id>/story")
+def story(trip_id):
+    trip = db.session.get(Trip, trip_id)
+    if trip is None:
+        flash("Trip not found.", "warning")
+        return redirect(url_for("trips.index"))
+
+    # All data in 4 queries — grouped in Python, no N+1
+    itin_items = (
+        ItineraryItem.query.filter_by(trip_id=trip.id)
+        .order_by(ItineraryItem.date.asc(), ItineraryItem.time.asc())
+        .all()
+    )
+    entries = (
+        JournalEntry.query
+        .options(selectinload(JournalEntry.photos))
+        .filter_by(trip_id=trip.id)
+        .order_by(JournalEntry.entry_date.asc(), JournalEntry.id.asc())
+        .all()
+    )
+    expense_rows = (
+        db.session.query(Expense.expense_date, func.sum(Expense.amount))
+        .filter(Expense.trip_id == trip.id)
+        .group_by(Expense.expense_date)
+        .all()
+    )
+    expenses_by_date = {d: total for d, total in expense_rows}
+    total_spend = sum(expenses_by_date.values()) if expenses_by_date else 0
+
+    hotels = (
+        TravelGuideEntry.query
+        .filter_by(trip_id=trip.id, section="hotel")
+        .order_by(TravelGuideEntry.sort_order)
+        .all()
+    )
+
+    itin_by_date = {}
+    for item in itin_items:
+        itin_by_date.setdefault(item.date, []).append(item)
+    entries_by_date = {}
+    for entry in entries:
+        entries_by_date.setdefault(entry.entry_date, []).append(entry)
+
+    # Build day-by-day story
+    days = []
+    duration = (trip.end_date - trip.start_date).days + 1
+    photo_count = 0
+    for offset in range(duration):
+        day = trip.start_date + timedelta(days=offset)
+        day_entries = entries_by_date.get(day, [])
+        photo_count += sum(len(e.photos) for e in day_entries)
+        days.append({
+            "date": day,
+            "number": offset + 1,
+            "items": itin_by_date.get(day, []),
+            "entries": day_entries,
+            "spend": expenses_by_date.get(day),
+        })
+
+    return render_template(
+        "trips/story.html",
+        title=f"{trip.name} — Story",
+        trip=trip,
+        days=days,
+        duration=duration,
+        total_spend=total_spend,
+        journal_count=len(entries),
+        photo_count=photo_count,
+        hotels=hotels,
     )
 
 

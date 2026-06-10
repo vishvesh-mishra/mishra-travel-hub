@@ -39,17 +39,33 @@
     <section class="mb-3">
       <p class="hub-section-label mb-2">Quick Actions</p>
       <div class="hub-actions-grid">
-        <a class="hub-action" href="{{ url_for('main.dashboard') }}">
-          <i class="bi bi-house hub-action__icon"></i>
-          <span>Dashboard</span>
+        <a class="hub-action" href="{{ url_for('main.today_view') }}">
+          <i class="bi bi-sun hub-action__icon"></i>
+          <span>Today</span>
+        </a>
+        <a class="hub-action" href="{{ url_for('main.wallet') }}">
+          <i class="bi bi-wallet2 hub-action__icon"></i>
+          <span>Wallet</span>
         </a>
         <a class="hub-action" href="{{ url_for('trips.index') }}">
           <i class="bi bi-airplane hub-action__icon"></i>
           <span>View Trips</span>
         </a>
-        <a class="hub-action" href="{{ url_for('trips.create') }}">
-          <i class="bi bi-plus-circle hub-action__icon"></i>
-          <span>Add Trip</span>
+        <a class="hub-action" href="{{ url_for('shopping.index') }}">
+          <i class="bi bi-cart hub-action__icon"></i>
+          <span>Shopping</span>
+        </a>
+        <a class="hub-action" href="{{ url_for('documents.index') }}">
+          <i class="bi bi-file-earmark-text hub-action__icon"></i>
+          <span>Documents</span>
+        </a>
+        <a class="hub-action" href="{{ url_for('expenses.index') }}">
+          <i class="bi bi-currency-dollar hub-action__icon"></i>
+          <span>Expenses</span>
+        </a>
+        <a class="hub-action" href="{{ url_for('journal.index') }}">
+          <i class="bi bi-journal-text hub-action__icon"></i>
+          <span>Journal</span>
         </a>
         <a class="hub-action hub-action--logout" href="{{ url_for('auth.logout') }}">
           <i class="bi bi-box-arrow-right hub-action__icon"></i>

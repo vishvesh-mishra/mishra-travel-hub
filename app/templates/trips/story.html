@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="pg-head story-no-print">
+    <a class="pg-head__back" href="{{ url_for('trips.detail', trip_id=trip.id) }}" aria-label="Back">
+      <i class="bi bi-chevron-left" aria-hidden="true"></i>
+    </a>
+    <div class="pg-head__body">
+      <p class="pg-head__context">{{ trip.name }}</p>
+      <h1 class="pg-head__title">Trip Story</h1>
+    </div>
+    <button class="pg-head__action" type="button" onclick="window.print()" title="Print / Save as PDF" aria-label="Print or save as PDF">
+      <i class="bi bi-printer" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <div class="story-shell">
+
+    {# ====== STORY COVER ====== #}
+    <header class="story-cover">
+      <p class="story-cover-eyebrow">{{ trip.destination }}</p>
+      <h2 class="story-cover-title">{{ trip.name }}</h2>
+      <p class="story-cover-dates">
+        {{ trip.start_date.strftime("%b %-d") }} – {{ trip.end_date.strftime("%b %-d, %Y") }}
+      </p>
+      <div class="story-stats">
+        <div class="story-stat">
+          <span class="story-stat-num">{{ duration }}</span>
+          <span class="story-stat-label">Days</span>
+        </div>
+        <div class="story-stat">
+          <span class="story-stat-num">{{ journal_count }}</span>
+          <span class="story-stat-label">Memories</span>
+        </div>
+        <div class="story-stat">
+          <span class="story-stat-num">{{ photo_count }}</span>
+          <span class="story-stat-label">Photos</span>
+        </div>
+        <div class="story-stat">
+          <span class="story-stat-num">${{ "{:.0f}".format(total_spend) }}</span>
+          <span class="story-stat-label">Spent</span>
+        </div>
+      </div>
+      <button class="guide-maps-btn mt-3 story-no-print" type="button"
+              data-share-title="{{ trip.name }}"
+              data-share-text="{{ trip.name }} — {{ trip.destination }}&#10;{{ trip.start_date.strftime('%b %-d') }} – {{ trip.end_date.strftime('%b %-d, %Y') }}&#10;{{ duration }} days · {{ journal_count }} memories · {{ photo_count }} photos">
+        <i class="bi bi-share" aria-hidden="true"></i> Share Story
+      </button>
+    </header>
+
+    {# ====== HOTELS SUMMARY ====== #}
+    {% if hotels %}
+      <div class="story-hotels">
+        {% for hotel in hotels %}
+          <p class="story-hotel-line">
+            <i class="bi bi-building" aria-hidden="true"></i>
+            {{ hotel.title }}{% if hotel.detail2 and hotel.detail3 %} · {{ hotel.detail2 | replace("Check-in: ", "") }} → {{ hotel.detail3 | replace("Check-out: ", "") }}{% endif %}
+          </p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {# ====== DAY-BY-DAY ====== #}
+    {% for day in days %}
+      {% if day["items"] or day["entries"] or day["spend"] %}
+        <section class="story-day">
+          <div class="story-day-head">
+            <span class="story-day-num">Day {{ day["number"] }}</span>
+            <span class="story-day-date">{{ day["date"].strftime("%A, %b %-d") }}</span>
+            {% if day["spend"] %}
+              <span class="story-day-spend">${{ "{:.0f}".format(day["spend"]) }}</span>
+            {% endif %}
+          </div>
+
+          {# Activities #}
+          {% if day["items"] %}
+            <div class="story-activities">
+              {% for item in day["items"] %}
+                <p class="story-activity">
+                  {% if item.time %}<span class="story-activity-time">{{ item.time.strftime("%-I:%M %p") }}</span>{% endif %}
+                  {{ item.title }}
+                </p>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {# Memories with photos #}
+          {% for entry in day["entries"] %}
+            <div class="story-memory">
+              <p class="story-memory-title">{{ entry.title }}</p>
+              {% if entry.location %}
+                <p class="story-memory-loc"><i class="bi bi-geo-alt" aria-hidden="true"></i> {{ entry.location }}</p>
+              {% endif %}
+              {% if entry.photos %}
+                <div class="story-photo-grid">
+                  {% for photo in entry.photos[:4] %}
+                    <img class="story-photo"
+                         src="{{ url_for('main.memory_photo', filename=photo.filename) }}"
+                         alt="{{ entry.title }} photo {{ loop.index }}"
+                         loading="lazy">
+                  {% endfor %}
+                </div>
+              {% endif %}
+              {% if entry.content %}
+                <p class="story-memory-text preserve-lines">{{ entry.content }}</p>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </section>
+      {% endif %}
+    {% endfor %}
+
+    <footer class="story-footer">
+      <p>Mishra Travel Hub · {{ trip.name }}</p>
+    </footer>
+
+  </div>
+{% endblock %}

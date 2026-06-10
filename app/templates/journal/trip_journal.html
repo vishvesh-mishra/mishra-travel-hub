@@ -7,43 +7,104 @@
     </a>
     <div class="pg-head__body">
       <p class="pg-head__context">{{ trip.name }}</p>
-      <h1 class="pg-head__title">Journal</h1>
+      <h1 class="pg-head__title">Memories</h1>
     </div>
-    <a class="pg-head__action" href="{{ url_for('journal.create', trip_id=trip.id) }}" title="Add entry">
+    <a class="pg-head__action" href="{{ url_for('journal.create', trip_id=trip.id) }}" title="New memory">
       <i class="bi bi-plus" aria-hidden="true"></i>
     </a>
   </div>
 
   {% if entries %}
-    <div class="memory-list d-grid gap-3">
+    <div class="memory-timeline">
       {% for entry in entries %}
-        <div class="memory-card">
-          <div class="memory-header">
-            <div class="memory-title-wrap">
-              <p class="memory-date">{{ entry.entry_date.strftime("%b %-d, %Y") }}</p>
-              <p class="memory-title">{{ entry.title }}</p>
-            </div>
-            <div class="memory-actions">
-              <a class="icon-btn" href="{{ url_for('journal.edit', trip_id=trip.id, entry_id=entry.id) }}" title="Edit">
-                <i class="bi bi-pencil" aria-hidden="true"></i>
-              </a>
-              <a class="icon-btn icon-btn--del" href="{{ url_for('journal.delete', trip_id=trip.id, entry_id=entry.id) }}" title="Delete">
-                <i class="bi bi-trash3" aria-hidden="true"></i>
-              </a>
-            </div>
+        {% set day_expenses = expenses_by_date.get(entry.entry_date) %}
+        {% set day_itinerary = itinerary_by_date.get(entry.entry_date) %}
+
+        <article class="memory-tl-item">
+          <div class="memory-tl-rail" aria-hidden="true">
+            <div class="memory-tl-dot"></div>
+            {% if not loop.last %}<div class="memory-tl-line"></div>{% endif %}
           </div>
-          {% if entry.content %}
-            <p class="memory-preview">{{ entry.content }}</p>
-          {% endif %}
-        </div>
+
+          <div class="memory-tl-card">
+            <p class="memory-date">{{ entry.entry_date.strftime("%a, %b %-d, %Y") }}</p>
+
+            <div class="memory-header">
+              <div class="memory-title-wrap">
+                <p class="memory-title">{{ entry.title }}</p>
+              </div>
+              <div class="memory-actions">
+                <button class="icon-btn" type="button"
+                        title="Share"
+                        aria-label="Share {{ entry.title }}"
+                        data-share-title="{{ entry.title }}"
+                        data-share-text="{{ trip.name }} — {{ entry.entry_date.strftime('%b %-d, %Y') }}&#10;&#10;{{ entry.title }}{% if entry.location %}&#10;📍 {{ entry.location }}{% endif %}&#10;&#10;{{ entry.content | truncate(500, true, '…') if entry.content else '' }}">
+                  <i class="bi bi-share" aria-hidden="true"></i>
+                </button>
+                <a class="icon-btn" href="{{ url_for('journal.edit', trip_id=trip.id, entry_id=entry.id) }}" title="Edit">
+                  <i class="bi bi-pencil" aria-hidden="true"></i>
+                </a>
+                <a class="icon-btn icon-btn--del" href="{{ url_for('journal.delete', trip_id=trip.id, entry_id=entry.id) }}" title="Delete">
+                  <i class="bi bi-trash3" aria-hidden="true"></i>
+                </a>
+              </div>
+            </div>
+
+            {# --- Photo grid --- #}
+            {% if entry.photos %}
+              <div class="memory-photo-grid memory-photo-grid--{{ [entry.photos | length, 3] | min }}">
+                {% for photo in entry.photos[:6] %}
+                  <button class="memory-photo-btn" type="button"
+                          data-lightbox-src="{{ url_for('main.memory_photo', filename=photo.filename) }}"
+                          aria-label="View photo {{ loop.index }}">
+                    <img class="memory-photo"
+                         src="{{ url_for('main.memory_photo', filename=photo.filename) }}"
+                         alt="Memory photo from {{ entry.entry_date.strftime('%b %-d') }}"
+                         loading="lazy">
+                    {% if loop.index == 6 and entry.photos | length > 6 %}
+                      <span class="memory-photo-more">+{{ entry.photos | length - 6 }}</span>
+                    {% endif %}
+                  </button>
+                {% endfor %}
+              </div>
+            {% endif %}
+
+            {% if entry.content %}
+              <p class="memory-preview">{{ entry.content }}</p>
+            {% endif %}
+
+            {# --- Meta row: location, expenses, related itinerary --- #}
+            {% if entry.location or day_expenses or day_itinerary %}
+              <div class="memory-meta">
+                {% if entry.location %}
+                  <a class="memory-meta-item memory-meta-loc"
+                     href="{{ maps_url(entry.location) }}" target="_blank" rel="noopener noreferrer">
+                    <i class="bi bi-geo-alt" aria-hidden="true"></i> {{ entry.location }}
+                  </a>
+                {% endif %}
+                {% if day_expenses %}
+                  <span class="memory-meta-item">
+                    <i class="bi bi-currency-dollar" aria-hidden="true"></i> ${{ "{:.0f}".format(day_expenses) }} this day
+                  </span>
+                {% endif %}
+                {% if day_itinerary %}
+                  <span class="memory-meta-item">
+                    <i class="bi bi-map" aria-hidden="true"></i> {{ day_itinerary[0].title | truncate(36, true, '…') }}
+                  </span>
+                {% endif %}
+              </div>
+            {% endif %}
+          </div>
+        </article>
       {% endfor %}
     </div>
+
   {% else %}
     <div class="page-panel" style="text-align:center;padding:2.5rem 1.25rem;">
       <i class="bi bi-journal-text" style="font-size:2.5rem;color:rgba(255,255,255,0.15);display:block;margin-bottom:0.875rem;"></i>
       <p class="fw-semibold mb-1" style="color:rgba(255,255,255,0.5)">No memories yet</p>
-      <p class="text-secondary small mb-3">Start writing about this trip.</p>
-      <a class="btn btn-primary btn-sm" href="{{ url_for('journal.create', trip_id=trip.id) }}">Write First Entry</a>
+      <p class="text-secondary small mb-3">Capture moments, photos, and places from this trip.</p>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('journal.create', trip_id=trip.id) }}">Create First Memory</a>
     </div>
   {% endif %}
 {% endblock %}

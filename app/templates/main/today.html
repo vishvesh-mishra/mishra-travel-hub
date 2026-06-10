@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  {# ====== TODAY HEADER ====== #}
+  <header class="today-header mb-4">
+    <p class="today-eyebrow">Today</p>
+    <h1 class="today-date">{{ today.strftime("%A, %b %-d") }}</h1>
+    {% if current_trip %}
+      <p class="today-trip">
+        {{ current_trip.name }} · {{ current_trip.destination }}
+        {% if trip_state == "upcoming" and countdown_days is not none %}
+          <span class="today-trip-badge">{{ countdown_days }}d to go</span>
+        {% elif trip_state == "active" %}
+          <span class="today-trip-badge today-trip-badge--active">Travelling</span>
+        {% endif %}
+      </p>
+    {% else %}
+      <p class="today-trip">No trips planned</p>
+    {% endif %}
+  </header>
+
+  {% if current_trip %}
+
+    {# ====== NEXT EVENT ====== #}
+    {% if next_event %}
+      <section class="next-event-card mb-4" aria-label="Next event">
+        <p class="nec-label">Next Up</p>
+        <p class="nec-title">{{ next_event.title }}</p>
+        <p class="nec-meta">
+          {% if next_event.date == today %}
+            Today{% if next_event.time %} · {{ next_event.time.strftime("%-I:%M %p") }}{% endif %}
+            {% if next_event_minutes is not none %}
+              {% if next_event_minutes < 60 %}
+                · <span class="nec-countdown">in {{ next_event_minutes }} min</span>
+              {% else %}
+                · <span class="nec-countdown">in {{ next_event_minutes // 60 }}h {{ next_event_minutes % 60 }}m</span>
+              {% endif %}
+            {% endif %}
+          {% else %}
+            {{ next_event.date.strftime("%a, %b %-d") }}{% if next_event.time %} · {{ next_event.time.strftime("%-I:%M %p") }}{% endif %}
+            · in {{ (next_event.date - today).days }} {{ "day" if (next_event.date - today).days == 1 else "days" }}
+          {% endif %}
+        </p>
+        {% if next_event.description %}
+          <p class="nec-desc">{{ next_event.description | truncate(110, true, '…') }}</p>
+        {% endif %}
+        <a class="guide-maps-btn mt-2" href="{{ maps_url(next_event.title ~ ' ' ~ current_trip.destination) }}"
+           target="_blank" rel="noopener noreferrer">
+          <i class="bi bi-map" aria-hidden="true"></i> Open in Maps
+        </a>
+      </section>
+    {% endif %}
+
+    {# ====== TODAY'S TIMELINE ====== #}
+    <section class="mb-4" aria-label="Today's schedule">
+      <div class="section-head">
+        <p class="section-head__title">Today's Plan</p>
+        <a class="section-head__link" href="{{ url_for('trips.itinerary', trip_id=current_trip.id) }}">Full itinerary →</a>
+      </div>
+      {% if todays_items %}
+        <div class="page-panel">
+          {% for item in todays_items %}
+            <div class="today-item{% if item.time and item.time < now_time %} is-done{% endif %}">
+              <span class="today-item-time">
+                {% if item.time %}{{ item.time.strftime("%-I:%M %p") }}{% else %}—{% endif %}
+              </span>
+              <div class="today-item-divider"></div>
+              <div class="today-item-body">
+                <p class="today-item-title">{{ item.title }}</p>
+                {% if item.description %}
+                  <p class="today-item-desc">{{ item.description | truncate(70, true, '…') }}</p>
+                {% endif %}
+              </div>
+              <a class="guide-maps-inline" href="{{ maps_url(item.title ~ ' ' ~ current_trip.destination) }}"
+                 target="_blank" rel="noopener" title="Map" aria-label="Open {{ item.title }} in Maps">
+                <i class="bi bi-map" aria-hidden="true"></i>
+              </a>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="page-panel" style="text-align:center;padding:2rem 1.25rem;">
+          <i class="bi bi-sun" style="font-size:2rem;color:rgba(255,255,255,0.18);display:block;margin-bottom:0.75rem;"></i>
+          <p class="fw-semibold mb-1" style="color:rgba(255,255,255,0.5)">No scheduled activities today</p>
+          <p class="text-secondary small mb-0">Enjoy a free day{% if trip_state == "active" %} in {{ current_trip.destination }}{% endif %}.</p>
+        </div>
+      {% endif %}
+    </section>
+
+    {# ====== CURRENT HOTEL ====== #}
+    {% if hotels %}
+      <section class="mb-4" aria-label="Hotel">
+        <div class="section-head">
+          <p class="section-head__title">Your Hotel</p>
+          <a class="section-head__link" href="{{ url_for('guide.for_trip', trip_id=current_trip.id) }}">Guide →</a>
+        </div>
+        {% for hotel in hotels[:2] %}
+          <div class="guide-card mb-2">
+            <div class="guide-card-header" style="margin-bottom:0">
+              <div class="guide-card-title-wrap">
+                <p class="guide-card-title">{{ hotel.title }}</p>
+                {% if hotel.subtitle %}<p class="guide-card-subtitle">{{ hotel.subtitle }}</p>{% endif %}
+              </div>
+              {% if hotel.maps_query %}
+                <a class="guide-maps-btn" href="{{ maps_url(hotel.maps_query) }}" target="_blank" rel="noopener noreferrer">
+                  <i class="bi bi-map" aria-hidden="true"></i> Maps
+                </a>
+              {% endif %}
+            </div>
+            {% if hotel.detail1 %}
+              <div class="guide-detail-row mt-2">
+                <i class="bi bi-telephone guide-detail-icon" aria-hidden="true"></i>
+                <a class="guide-detail-value guide-tel-link" href="tel:{{ hotel.detail1 }}">{{ hotel.detail1 }}</a>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </section>
+    {% endif %}
+
+    {# ====== TRANSFERS ====== #}
+    {% if transfers %}
+      <section class="mb-4" aria-label="Transfers">
+        <div class="section-head">
+          <p class="section-head__title">Transfers</p>
+        </div>
+        {% for t in transfers[:2] %}
+          <div class="guide-card mb-2">
+            <p class="guide-card-title mb-1">{{ t.title }}</p>
+            {% if t.detail3 %}
+              <div class="guide-detail-row">
+                <i class="bi bi-alarm guide-detail-icon" aria-hidden="true"></i>
+                <span class="guide-detail-value">{{ t.detail3 }}</span>
+              </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </section>
+    {% endif %}
+
+    {# ====== QUICK ACTIONS ====== #}
+    <section class="mb-4" aria-label="Quick actions">
+      <div class="section-head">
+        <p class="section-head__title">Quick Actions</p>
+      </div>
+      <div class="today-actions-grid">
+        <a class="today-action" href="{{ url_for('main.wallet') }}">
+          <i class="bi bi-wallet2 today-action__icon" aria-hidden="true"></i>
+          <span>Wallet</span>
+        </a>
+        <a class="today-action" href="{{ url_for('guide.for_trip', trip_id=current_trip.id) }}">
+          <i class="bi bi-compass today-action__icon" aria-hidden="true"></i>
+          <span>Guide</span>
+        </a>
+        <a class="today-action" href="{{ url_for('journal.for_trip', trip_id=current_trip.id) }}">
+          <i class="bi bi-journal-text today-action__icon" aria-hidden="true"></i>
+          <span>Memories</span>
+        </a>
+        <a class="today-action" href="{{ maps_url(current_trip.destination) }}" target="_blank" rel="noopener noreferrer">
+          <i class="bi bi-map today-action__icon" aria-hidden="true"></i>
+          <span>Maps</span>
+        </a>
+      </div>
+    </section>
+
+  {% else %}
+
+    {# ====== NO TRIP EMPTY STATE ====== #}
+    <div class="page-panel" style="text-align:center;padding:3rem 1.25rem;">
+      <i class="bi bi-airplane" style="font-size:2.5rem;color:rgba(255,255,255,0.15);display:block;margin-bottom:1rem;"></i>
+      <p class="fw-semibold mb-1" style="color:rgba(255,255,255,0.5)">No trips planned</p>
+      <p class="text-secondary small mb-3">Create a trip to see your daily travel plan here.</p>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('trips.create') }}">Create Trip</a>
+    </div>
+
+  {% endif %}
+
+{% endblock %}

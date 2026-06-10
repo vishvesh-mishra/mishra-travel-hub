@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  <header class="today-header mb-4">
+    <p class="today-eyebrow">Travel Wallet</p>
+    <h1 class="today-date">Documents</h1>
+    <p class="today-trip">{{ documents | length }} {{ "document" if documents | length == 1 else "documents" }} across all trips</p>
+  </header>
+
+  {% if documents %}
+    <div class="wallet-stack">
+      {% for document in documents %}
+        {% set meta = category_meta.get(document.category, category_meta["Other"]) %}
+        {% set icon_cls = meta[0] %}
+        {% set color_key = meta[1] %}
+
+        {% if document.external_url %}
+          <a class="wallet-card wallet-card--{{ color_key }}"
+             href="{{ document.external_url }}"
+             target="_blank" rel="noopener noreferrer"
+             aria-label="Open {{ document.title }}">
+        {% else %}
+          <div class="wallet-card wallet-card--{{ color_key }} wallet-card--inert">
+        {% endif %}
+
+            <div class="wallet-card-top">
+              <div class="wallet-card-icon">
+                <i class="bi {{ icon_cls }}" aria-hidden="true"></i>
+              </div>
+              <span class="wallet-card-cat">{{ document.category }}</span>
+              {% if document.external_url %}
+                <i class="bi bi-box-arrow-up-right wallet-card-open" aria-hidden="true"></i>
+              {% endif %}
+            </div>
+
+            <p class="wallet-card-title">{{ document.title }}</p>
+
+            <div class="wallet-card-bottom">
+              <span class="wallet-card-trip">{{ document.trip.name }}</span>
+              {% if document.external_url %}
+                <span class="wallet-card-status wallet-card-status--ok">
+                  <i class="bi bi-check-circle-fill" aria-hidden="true"></i> Available
+                </span>
+              {% else %}
+                <span class="wallet-card-status wallet-card-status--missing">
+                  <i class="bi bi-dash-circle" aria-hidden="true"></i> Document not available
+                </span>
+              {% endif %}
+            </div>
+
+        {% if document.external_url %}
+          </a>
+        {% else %}
+          </div>
+        {% endif %}
+
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="page-panel" style="text-align:center;padding:3rem 1.25rem;">
+      <i class="bi bi-wallet2" style="font-size:2.5rem;color:rgba(255,255,255,0.15);display:block;margin-bottom:1rem;"></i>
+      <p class="fw-semibold mb-1" style="color:rgba(255,255,255,0.5)">Your wallet is empty</p>
+      <p class="text-secondary small mb-3">Add documents to a trip and they appear here as wallet cards.</p>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('documents.index') }}">Go to Documents</a>
+    </div>
+  {% endif %}
+
+{% endblock %}

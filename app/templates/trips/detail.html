@@ -59,6 +59,9 @@
     <a class="chip" href="{{ url_for('journal.for_trip', trip_id=trip.id) }}">
       <i class="bi bi-journal-text" aria-hidden="true"></i> Journal
     </a>
+    <a class="chip" href="{{ url_for('trips.story', trip_id=trip.id) }}">
+      <i class="bi bi-book" aria-hidden="true"></i> Story
+    </a>
     <a class="chip chip--icon" href="{{ url_for('trips.edit', trip_id=trip.id) }}" title="Edit trip">
       <i class="bi bi-pencil" aria-hidden="true"></i>
     </a>
