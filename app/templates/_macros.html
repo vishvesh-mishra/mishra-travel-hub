@@ -1,0 +1,22 @@
+{# Reusable native-style page header.
+   Usage:
+     {% from "_macros.html" import pg_head %}
+     {{ pg_head("Travel Wallet", url_for('main.dashboard')) }}
+     {{ pg_head("Trips", url_for('main.dashboard'), action_url=url_for('trips.create'), action_icon="bi-plus") }}
+#}
+{% macro pg_head(title, back_url, context=None, action_url=None, action_icon=None, action_label=None) %}
+  <div class="pg-head">
+    <a class="pg-head__back" href="{{ back_url }}" aria-label="Back">
+      <i class="bi bi-chevron-left" aria-hidden="true"></i>
+    </a>
+    <div class="pg-head__body">
+      {% if context %}<p class="pg-head__context">{{ context }}</p>{% endif %}
+      <h1 class="pg-head__title">{{ title }}</h1>
+    </div>
+    {% if action_url %}
+      <a class="pg-head__action" href="{{ action_url }}" title="{{ action_label or 'Add' }}" aria-label="{{ action_label or 'Add' }}">
+        <i class="bi {{ action_icon or 'bi-plus' }}" aria-hidden="true"></i>
+      </a>
+    {% endif %}
+  </div>
+{% endmacro %}

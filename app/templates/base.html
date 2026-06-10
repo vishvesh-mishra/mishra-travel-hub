@@ -22,30 +22,26 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg border-bottom">
+    {% if current_user.is_authenticated %}
+    {# Desktop-only navbar — mobile uses native page headers + bottom nav #}
+    <nav class="navbar navbar-expand d-none d-md-flex border-bottom">
       <div class="container">
         <a class="navbar-brand fw-semibold" href="{{ url_for('main.dashboard') }}">Mishra Travel Hub</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="mainNav">
-          <ul class="navbar-nav ms-auto">
-            {% if current_user.is_authenticated %}
-              <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
-              <li class="nav-item"><a class="nav-link {% if request.endpoint and request.endpoint.startswith('trips.') %}active{% endif %}" href="{{ url_for('trips.index') }}">Trips</a></li>
-              <li class="nav-item"><a class="nav-link {% if request.endpoint and request.endpoint.startswith('documents.') %}active{% endif %}" href="{{ url_for('documents.index') }}">Documents</a></li>
-              <li class="nav-item"><a class="nav-link {% if request.endpoint and request.endpoint.startswith('shopping.') %}active{% endif %}" href="{{ url_for('shopping.index') }}">Shopping</a></li>
-              <li class="nav-item"><a class="nav-link {% if request.endpoint and request.endpoint.startswith('expenses.') %}active{% endif %}" href="{{ url_for('expenses.index') }}">Expenses</a></li>
-              <li class="nav-item"><a class="nav-link {% if request.endpoint and request.endpoint.startswith('journal.') %}active{% endif %}" href="{{ url_for('journal.index') }}">Journal</a></li>
-              <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.hub' %}active{% endif %}" href="{{ url_for('main.hub') }}">Hub</a></li>
-              <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a></li>
-            {% else %}
-              <li class="nav-item"><a class="nav-link {% if request.endpoint and request.endpoint.startswith('auth.') %}active{% endif %}" href="{{ url_for('auth.login') }}">Login</a></li>
-            {% endif %}
-          </ul>
-        </div>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.today_view' %}active{% endif %}" href="{{ url_for('main.today_view') }}">Today</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.wallet' %}active{% endif %}" href="{{ url_for('main.wallet') }}">Wallet</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.endpoint and request.endpoint.startswith('trips.') %}active{% endif %}" href="{{ url_for('trips.index') }}">Trips</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.endpoint and request.endpoint.startswith('documents.') %}active{% endif %}" href="{{ url_for('documents.index') }}">Documents</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.endpoint and request.endpoint.startswith('shopping.') %}active{% endif %}" href="{{ url_for('shopping.index') }}">Shopping</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.endpoint and request.endpoint.startswith('expenses.') %}active{% endif %}" href="{{ url_for('expenses.index') }}">Expenses</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.endpoint and request.endpoint.startswith('journal.') %}active{% endif %}" href="{{ url_for('journal.index') }}">Journal</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.endpoint == 'main.hub' %}active{% endif %}" href="{{ url_for('main.hub') }}">Hub</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a></li>
+        </ul>
       </div>
     </nav>
+    {% endif %}
 
     <main class="container py-4 main-content">
       {% with messages = get_flashed_messages(with_categories=true) %}
@@ -320,5 +316,51 @@
 
       }());
     </script>
+
+    {% if current_user.is_authenticated %}
+    <script>
+      /* ============================================================
+         Phase 9 — Offline session security (authenticated pages only)
+         ============================================================ */
+      (function () {
+        'use strict';
+
+        /* 1. Mark offline session — page rendered = server authenticated us.
+              Mirror the marker into the SW (cache-based, SW can't read
+              localStorage) so offline navigation can be gated there too. */
+        localStorage.setItem('mthOfflineSession', '1');
+        function tellSW(msg) {
+          if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage(msg);
+          }
+        }
+        tellSW({ type: 'MTH_AUTH' });
+
+        /* 2. Offline gate — cached page opened with no offline session
+              (e.g. via back button after logout): lock it. */
+        if (!navigator.onLine && !localStorage.getItem('mthOfflineSession')) {
+          window.location.replace('/static/offline-lock.html');
+          return;
+        }
+
+        /* 3. Logout interception — strong haptic, clear marker, tell SW
+              to drop private caches, then proceed to the server logout. */
+        document.addEventListener('click', function (e) {
+          var link = e.target.closest('a[href*="/auth/logout"]');
+          if (!link) return;
+          window.mthHapticStrong();
+          localStorage.removeItem('mthOfflineSession');
+          tellSW({ type: 'MTH_LOGOUT' });
+        });
+
+        /* 4. bfcache guard — restored page after logout must not show. */
+        window.addEventListener('pageshow', function (e) {
+          if (e.persisted && !localStorage.getItem('mthOfflineSession')) {
+            window.location.replace('/auth/login');
+          }
+        });
+      }());
+    </script>
+    {% endif %}
   </body>
 </html>

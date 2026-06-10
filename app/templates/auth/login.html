@@ -9,10 +9,24 @@
 {% endmacro %}
 
 {% block content %}
+  <div class="login-hero" aria-hidden="true">
+    <img class="login-hero__img" src="{{ url_for('static', filename='images/family-hero.jpeg') }}" alt="">
+    <div class="login-hero__overlay"></div>
+  </div>
+
   <div class="login-shell">
     <div class="login-panel">
-      <p class="text-secondary mb-1 small">Mishra Travel Hub</p>
-      <h1 class="h3 mb-4">Sign in</h1>
+
+      <div class="login-brand">
+        <img class="login-brand__icon" src="{{ url_for('static', filename='icons/icon-192.png') }}" alt="" width="56" height="56">
+        <h1 class="login-brand__title">Mishra Travel Hub</h1>
+        <p class="login-brand__sub">Family Travel Companion</p>
+      </div>
+
+      <p class="login-offline-note" id="loginOfflineNote" hidden>
+        <i class="bi bi-wifi-off" aria-hidden="true"></i>
+        You're offline — connect to the internet to sign in.
+      </p>
 
       <form method="post" novalidate>
         {{ form.hidden_tag() }}
@@ -29,8 +43,19 @@
           {{ field_errors(form.password) }}
         </div>
 
-        {{ form.submit(class="btn btn-primary w-100") }}
+        {{ form.submit(class="btn btn-primary w-100 login-submit") }}
       </form>
+
     </div>
   </div>
+
+  <script>
+    (function () {
+      var note = document.getElementById('loginOfflineNote');
+      function update() { if (note) note.hidden = navigator.onLine; }
+      window.addEventListener('online', update);
+      window.addEventListener('offline', update);
+      update();
+    }());
+  </script>
 {% endblock %}

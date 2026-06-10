@@ -1,10 +1,14 @@
 // Mishra Travel Hub — Service Worker
-// Phase 6A: Full offline-first caching strategy
+// Phase 9: Offline-first caching with offline session security
 
-const CACHE_VERSION  = 'v8';
+const CACHE_VERSION  = 'v9';
 const STATIC_CACHE   = `mth-static-${CACHE_VERSION}`;
 const PAGES_CACHE    = `mth-pages-${CACHE_VERSION}`;
+const MEDIA_CACHE    = `mth-media-${CACHE_VERSION}`;
+const SESSION_CACHE  = 'mth-session';            // unversioned — survives SW updates
+const SESSION_KEY    = '/__mth-offline-session__';
 const OFFLINE_URL    = '/static/offline.html';
+const LOCK_URL       = '/static/offline-lock.html';
 
 // Static assets pre-cached on install (guaranteed offline availability)
 const PRECACHE_URLS = [
@@ -13,6 +17,7 @@ const PRECACHE_URLS = [
   '/static/icons/icon-512.png',
   '/static/images/family-hero.jpeg',
   OFFLINE_URL,
+  LOCK_URL,
 ];
 
 // ---------------------------------------------------------------------------
@@ -27,19 +32,37 @@ self.addEventListener('install', (event) => {
 });
 
 // ---------------------------------------------------------------------------
-// ACTIVATE — purge stale caches
+// ACTIVATE — purge stale caches (session cache is kept across versions)
 // ---------------------------------------------------------------------------
 self.addEventListener('activate', (event) => {
+  const keep = [STATIC_CACHE, PAGES_CACHE, MEDIA_CACHE, SESSION_CACHE];
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys
-          .filter((k) => k !== STATIC_CACHE && k !== PAGES_CACHE)
-          .map((k) => caches.delete(k))
+        keys.filter((k) => !keep.includes(k)).map((k) => caches.delete(k))
       )
     ).then(() => self.clients.claim())
   );
 });
+
+// ---------------------------------------------------------------------------
+// Offline session marker — cache-based because SW cannot read localStorage
+// ---------------------------------------------------------------------------
+async function setOfflineSession() {
+  const cache = await caches.open(SESSION_CACHE);
+  await cache.put(SESSION_KEY, new Response('1'));
+}
+
+async function clearOfflineSession() {
+  const cache = await caches.open(SESSION_CACHE);
+  await cache.delete(SESSION_KEY);
+}
+
+async function hasOfflineSession() {
+  const cache = await caches.open(SESSION_CACHE);
+  const hit = await cache.match(SESSION_KEY);
+  return Boolean(hit);
+}
 
 // ---------------------------------------------------------------------------
 // FETCH — tiered caching strategy
@@ -58,22 +81,35 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Local static assets (/static/…) and uploaded memory photos (/media/…):
-  // Cache-first — filenames are immutable (uuid), only fetch when cache is cold
-  if (url.pathname.startsWith('/static/') || url.pathname.startsWith('/media/')) {
+  // Local static assets — cache-first, public shell (CSS, icons, lock page)
+  if (url.pathname.startsWith('/static/')) {
     event.respondWith(cacheFirst(request, STATIC_CACHE));
     return;
   }
 
-  // HTML navigation pages:
-  // Network-first with cache fallback, offline page as last resort
+  // Uploaded memory photos — private media, cleared on logout
+  if (url.pathname.startsWith('/media/')) {
+    event.respondWith(cacheFirst(request, MEDIA_CACHE));
+    return;
+  }
+
+  // Auth pages — network only, never cached as pages.
+  // Offline: login is impossible anyway, show the lock screen.
+  if (url.pathname.startsWith('/auth/')) {
+    if (request.headers.get('Accept')?.includes('text/html')) {
+      event.respondWith(
+        fetch(request).catch(() => caches.match(LOCK_URL))
+      );
+    }
+    return;
+  }
+
+  // HTML navigation pages (private app content):
+  // Network-first; offline fallback is gated by the offline session marker
   if (request.headers.get('Accept')?.includes('text/html')) {
     event.respondWith(networkFirstHtml(request));
     return;
   }
-
-  // Everything else (API calls, form POSTs already excluded above):
-  // Network only
 });
 
 // ---------------------------------------------------------------------------
@@ -114,8 +150,12 @@ async function networkFirstHtml(request) {
     if (response.ok) cache.put(request, response.clone());
     return response;
   } catch (_) {
-    const cached = await cache.match(request);
-    return cached || (await caches.match(OFFLINE_URL));
+    // OFFLINE: only serve private cached pages with a valid offline session
+    if (await hasOfflineSession()) {
+      const cached = await cache.match(request);
+      return cached || (await caches.match(OFFLINE_URL));
+    }
+    return caches.match(LOCK_URL);
   }
 }
 
@@ -134,8 +174,21 @@ async function notifyClients() {
 }
 
 // ---------------------------------------------------------------------------
-// Message handler — client can request cache purge for fresh install
+// Messages from the app
+//   MTH_AUTH   — authenticated page loaded → set offline session marker
+//   MTH_LOGOUT — user logged out → clear marker + private caches
 // ---------------------------------------------------------------------------
 self.addEventListener('message', (event) => {
-  if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
+  const type = event.data?.type;
+  if (type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  } else if (type === 'MTH_AUTH') {
+    event.waitUntil(setOfflineSession());
+  } else if (type === 'MTH_LOGOUT') {
+    event.waitUntil(Promise.all([
+      clearOfflineSession(),
+      caches.delete(PAGES_CACHE),
+      caches.delete(MEDIA_CACHE),
+    ]));
+  }
 });

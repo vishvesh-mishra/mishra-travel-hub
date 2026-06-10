@@ -1,10 +1,8 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div class="d-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0">Expenses</h1>
-    <a class="btn btn-outline-light btn-sm" href="{{ url_for('trips.index') }}">Trips</a>
-  </div>
+  {% from "_macros.html" import pg_head %}
+  {{ pg_head("Expenses", url_for('main.dashboard')) }}
 
   {% if trip_rows %}
     <div class="d-grid gap-3">

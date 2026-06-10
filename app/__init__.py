@@ -22,9 +22,21 @@ def create_app(config_name=None):
 
     register_blueprints(app)
     register_before_request(app)
+    register_security_headers(app)
     register_commands(app)
 
     return app
+
+
+def register_security_headers(app):
+    @app.after_request
+    def no_store_html(response):
+        # Keep private pages out of the browser HTTP cache and bfcache so the
+        # back button cannot reveal them after logout. The service worker
+        # still caches pages for offline use, gated by its session marker.
+        if response.mimetype == "text/html":
+            response.headers["Cache-Control"] = "no-store, must-revalidate"
+        return response
 
 
 def register_blueprints(app):

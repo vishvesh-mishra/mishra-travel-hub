@@ -1,12 +1,11 @@
 {% extends "base.html" %}
+{% from "_macros.html" import pg_head %}
 
 {% block content %}
 
-  <header class="today-header mb-4">
-    <p class="today-eyebrow">Travel Wallet</p>
-    <h1 class="today-date">Documents</h1>
-    <p class="today-trip">{{ documents | length }} {{ "document" if documents | length == 1 else "documents" }} across all trips</p>
-  </header>
+  {{ pg_head("Travel Wallet", url_for('main.dashboard')) }}
+
+  <p class="today-trip mb-4">{{ documents | length }} {{ "document" if documents | length == 1 else "documents" }} across all trips</p>
 
   {% if documents %}
     <div class="wallet-stack">

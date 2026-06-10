@@ -184,6 +184,9 @@ body {
 
 @media (max-width: 767.98px) {
   .main-content {
+    /* Navbar is desktop-only — content owns the safe area at the top
+       (Dynamic Island / notch) and clears the bottom nav below. */
+    padding-top: calc(0.875rem + env(safe-area-inset-top)) !important;
     padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
   }
 }
@@ -678,19 +681,84 @@ body {
   white-space: pre-wrap;
 }
 
+/* === LOGIN (Phase 9 redesign) === */
+
+.login-hero {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+}
+.login-hero__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(2px) brightness(0.5);
+  transform: scale(1.04);
+}
+.login-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(16,17,20,0.55) 0%, rgba(16,17,20,0.88) 70%, #101114 100%);
+}
+
 .login-shell {
   display: flex;
   justify-content: center;
-  padding-top: 3rem;
+  align-items: center;
+  min-height: calc(100dvh - 6rem);
+  padding-top: calc(1rem + env(safe-area-inset-top));
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
 }
 
 .login-panel {
   width: 100%;
   max-width: 400px;
-  padding: 1.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 2rem 1.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  background: rgba(20, 21, 26, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.login-brand { text-align: center; margin-bottom: 1.75rem; }
+.login-brand__icon {
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.04);
+  margin-bottom: 0.875rem;
+  box-shadow: 0 4px 24px rgba(13,110,253,0.25);
+}
+.login-brand__title {
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin-bottom: 0.125rem;
+}
+.login-brand__sub {
+  font-size: 0.8125rem;
+  color: rgba(255,255,255,0.42);
+  margin-bottom: 0;
+}
+
+.login-offline-note {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 12px;
+  background: rgba(220,53,69,0.1);
+  border: 1px solid rgba(220,53,69,0.2);
+  color: #ea868f;
+  font-size: 0.8125rem;
+  margin-bottom: 1.25rem;
+}
+
+.login-submit {
+  padding-top: 0.625rem;
+  padding-bottom: 0.625rem;
+  font-weight: 600;
+  border-radius: 12px;
 }
 
 @media (max-width: 575.98px) {
@@ -2291,6 +2359,14 @@ a.travel-pass {
   padding-top: 6px;
   padding-bottom: 6px;
   border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+@media (max-width: 767.98px) {
+  /* No navbar on mobile — when stuck, clear the Dynamic Island / notch */
+  .chip-bar--sticky {
+    padding-top: calc(6px + env(safe-area-inset-top));
+    margin-top: calc(-1 * env(safe-area-inset-top));
+  }
 }
 
 /* ---- Quick stats row (trip detail) ---- */

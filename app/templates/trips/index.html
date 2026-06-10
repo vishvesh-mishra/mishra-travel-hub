@@ -24,10 +24,8 @@
 {% endmacro %}
 
 {% block content %}
-  <div class="d-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0">Trips</h1>
-    <a class="btn btn-primary btn-sm" href="{{ url_for('trips.create') }}">+ New Trip</a>
-  </div>
+  {% from "_macros.html" import pg_head %}
+  {{ pg_head("Trips", url_for('main.dashboard'), action_url=url_for('trips.create'), action_label="New trip") }}
 
   {% if trips %}
     <div class="d-grid gap-3">
