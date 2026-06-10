@@ -31,6 +31,7 @@ def register_blueprints(app):
     from .auth import bp as auth_bp
     from .documents import bp as documents_bp
     from .expenses import bp as expenses_bp
+    from .guide import bp as guide_bp
     from .journal import bp as journal_bp
     from .main import bp as main_bp
     from .shopping import bp as shopping_bp
@@ -43,6 +44,18 @@ def register_blueprints(app):
     app.register_blueprint(shopping_bp)
     app.register_blueprint(documents_bp)
     app.register_blueprint(journal_bp)
+    app.register_blueprint(guide_bp)
+
+    _register_template_globals(app)
+
+
+def _register_template_globals(app):
+    from urllib.parse import quote as _quote
+
+    @app.template_global()
+    def maps_url(query):
+        """Return a no-API Google Maps search URL for any location string."""
+        return f"https://www.google.com/maps/search/?api=1&query={_quote(str(query))}"
 
 
 def register_before_request(app):
@@ -56,6 +69,7 @@ def register_before_request(app):
             and not request.endpoint.startswith("auth.")
             and request.endpoint != "static"
             and request.endpoint != "main.service_worker"
+            and request.endpoint != "main.offline"
             and not current_user.is_authenticated
         ):
             return login_manager.unauthorized()

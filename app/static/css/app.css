@@ -2239,3 +2239,175 @@ a.travel-pass {
     opacity: 0.65;
   }
 }
+
+/* ============================================================
+   PHASE 6 — OFFLINE FIRST, TRAVEL GUIDE, POLISH
+   ============================================================ */
+
+/* ---- Online/Offline status badge ---- */
+.online-badge {
+  position: fixed;
+  bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 10px);
+  right: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px 4px 7px;
+  border-radius: 999px;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1050;
+}
+.online-badge.is-visible { opacity: 1; }
+.online-badge.is-offline { background: rgba(220,53,69,0.15); color: #ea868f; border: 1px solid rgba(220,53,69,0.28); }
+.online-badge.is-syncing { background: rgba(13,110,253,0.15); color: #6ea8fe;  border: 1px solid rgba(13,110,253,0.28); }
+.online-badge__dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.is-offline .online-badge__dot { background: #ea868f; }
+.is-syncing .online-badge__dot { background: #6ea8fe; animation: mth-pulse 1s ease-in-out infinite; }
+@keyframes mth-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+/* Hide badge on desktop (no bottom nav = different baseline) */
+@media (min-width: 768px) {
+  .online-badge { bottom: 14px; }
+}
+
+/* ---- Sticky chip navigation bar ---- */
+.chip-bar--sticky {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(16,17,20,0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  margin-left:  calc(-1 * var(--bs-gutter-x, 0.75rem));
+  margin-right: calc(-1 * var(--bs-gutter-x, 0.75rem));
+  padding-left:  var(--bs-gutter-x, 0.75rem);
+  padding-right: var(--bs-gutter-x, 0.75rem);
+  padding-top: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+/* ---- Quick stats row (trip detail) ---- */
+.trip-stats-row {
+  display: flex;
+  align-items: center;
+  padding: 0.875rem 1.125rem;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 1rem;
+}
+.tsr-item { flex: 1; text-align: center; }
+.tsr-value { display: block; font-size: 1rem; font-weight: 700; letter-spacing: -0.02em; color: #fff; line-height: 1.2; }
+.tsr-label { display: block; font-size: 0.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.32); margin-top: 2px; }
+.tsr-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.08); flex-shrink: 0; }
+
+/* ---- Travel Guide ---- */
+.guide-section { }
+.guide-section-head {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-bottom: 0.75rem;
+}
+.guide-section-icon {
+  width: 28px; height: 28px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.875rem; flex-shrink: 0;
+}
+.guide-section-icon--hotel     { background: rgba(13,110,253,0.16);  color: #6ea8fe; }
+.guide-section-icon--flight    { background: rgba(13,202,240,0.14);  color: #6edff6; }
+.guide-section-icon--transfer  { background: rgba(111,66,193,0.16);  color: #c5a3f7; }
+.guide-section-icon--booking   { background: rgba(255,193,7,0.14);   color: #ffc107; }
+.guide-section-icon--contact   { background: rgba(220,53,69,0.14);   color: #ea868f; }
+.guide-section-icon--note      { background: rgba(255,193,7,0.12);   color: #ffd25a; }
+.guide-section-icon--rule      { background: rgba(25,135,84,0.16);   color: #75b798; }
+.guide-section-icon--etiquette { background: rgba(214,51,132,0.14);  color: #e685b5; }
+
+.guide-section-label {
+  font-size: 0.6875rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; color: rgba(255,255,255,0.4);
+}
+.guide-section-count {
+  margin-left: auto;
+  font-size: 0.625rem; font-weight: 600; color: rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.07); padding: 1px 7px; border-radius: 999px;
+}
+
+.guide-cards { display: grid; gap: 0.625rem; }
+
+.guide-card {
+  padding: 0.875rem 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.03);
+}
+.guide-card-header {
+  display: flex; align-items: flex-start; gap: 0.625rem;
+  margin-bottom: 0.5rem;
+}
+.guide-card-title-wrap { flex: 1; min-width: 0; }
+.guide-card-title {
+  font-size: 0.9375rem; font-weight: 600; color: rgba(255,255,255,0.9);
+  margin-bottom: 0.125rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.guide-card-subtitle {
+  font-size: 0.75rem; color: rgba(255,255,255,0.42);
+  margin-bottom: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.guide-card-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+
+.guide-maps-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 999px;
+  background: rgba(13,110,253,0.12); border: 1px solid rgba(13,110,253,0.22);
+  color: #6ea8fe; font-size: 0.6875rem; font-weight: 600;
+  text-decoration: none; white-space: nowrap; flex-shrink: 0;
+}
+@media (hover:hover) { .guide-maps-btn:hover { background: rgba(13,110,253,0.22); color: #9ec5fe; } }
+@media (hover:none)  { .guide-maps-btn:active { transform: scale(0.94); opacity: 0.8; transition: transform 0.08s ease-out; } }
+
+.guide-maps-inline {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 6px;
+  background: rgba(13,110,253,0.1); color: #6ea8fe;
+  font-size: 0.75rem; text-decoration: none; flex-shrink: 0; margin-left: auto;
+}
+@media (hover:hover) { .guide-maps-inline:hover { background: rgba(13,110,253,0.2); } }
+
+.guide-detail-row {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.3125rem 0;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  font-size: 0.8125rem;
+}
+.guide-detail-icon  { color: rgba(255,255,255,0.28); font-size: 0.75rem; flex-shrink: 0; }
+.guide-detail-label { color: rgba(255,255,255,0.32); font-size: 0.6875rem; white-space: nowrap; flex-shrink: 0; }
+.guide-detail-value { color: rgba(255,255,255,0.8); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.guide-tel-link     { color: #6ea8fe; text-decoration: none; }
+
+.guide-booking-id {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.875rem; font-weight: 600; font-family: "SF Mono", "Fira Code", monospace;
+  color: rgba(255,255,255,0.82); flex: 1;
+}
+.guide-copy-btn {
+  background: none; border: none; padding: 0 2px;
+  color: rgba(255,255,255,0.28); font-size: 0.75rem; cursor: pointer;
+  display: inline-flex; align-items: center; line-height: 1;
+}
+.guide-copy-btn.copied { color: #75b798; }
+
+.guide-body {
+  margin-top: 0.625rem; padding-top: 0.625rem;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  font-size: 0.8125rem; color: rgba(255,255,255,0.55);
+  line-height: 1.7;
+  white-space: pre-wrap;
+}

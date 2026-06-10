@@ -52,6 +52,9 @@ class Trip(db.Model):
     journal_entries = db.relationship(
         "JournalEntry", back_populates="trip", cascade="all, delete-orphan"
     )
+    guide_entries = db.relationship(
+        "TravelGuideEntry", back_populates="trip", cascade="all, delete-orphan"
+    )
 
 
 class ItineraryItem(db.Model):
@@ -107,3 +110,35 @@ class JournalEntry(db.Model):
     entry_date = db.Column(db.Date, nullable=False)
 
     trip = db.relationship("Trip", back_populates="journal_entries")
+
+
+class TravelGuideEntry(db.Model):
+    __tablename__ = "travel_guide_entry"
+
+    # section → (bootstrap-icon class, display label)
+    SECTION_META = {
+        "hotel":     ("bi-building",            "Hotels"),
+        "flight":    ("bi-airplane",             "Flights"),
+        "transfer":  ("bi-bus-front",            "Transfers"),
+        "booking":   ("bi-ticket-perforated",    "Booking IDs"),
+        "contact":   ("bi-telephone",            "Emergency Contacts"),
+        "note":      ("bi-info-circle",          "Travel Notes"),
+        "rule":      ("bi-check2-square",        "Do's & Don'ts"),
+        "etiquette": ("bi-heart",                "Travel Etiquette"),
+    }
+    SECTION_ORDER = ["hotel", "flight", "transfer", "booking", "contact", "note", "rule", "etiquette"]
+
+    id         = db.Column(db.Integer, primary_key=True)
+    trip_id    = db.Column(db.Integer, db.ForeignKey("trip.id"), nullable=False)
+    section    = db.Column(db.String(40), nullable=False)   # one of SECTION_META keys
+    title      = db.Column(db.String(160), nullable=False)
+    subtitle   = db.Column(db.String(200))   # address / route / phone org
+    detail1    = db.Column(db.String(200))   # phone / departure / pickup / ref number
+    detail2    = db.Column(db.String(200))   # check-in / arrival / drop
+    detail3    = db.Column(db.String(200))   # check-out / terminal / reporting time
+    body       = db.Column(db.Text)          # free text for notes/rules/etiquette
+    maps_query = db.Column(db.String(300))   # passed to Google Maps search URL
+    sort_order = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime(timezone=True), default=utc_now, nullable=False)
+
+    trip = db.relationship("Trip", back_populates="guide_entries")

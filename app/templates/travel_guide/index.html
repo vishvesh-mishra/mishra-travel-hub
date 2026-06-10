@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="pg-head">
+    <a class="pg-head__back" href="{{ url_for('trips.detail', trip_id=trip.id) }}" aria-label="Back to trip">
+      <i class="bi bi-chevron-left" aria-hidden="true"></i>
+    </a>
+    <div class="pg-head__body">
+      <p class="pg-head__context">{{ trip.name }}</p>
+      <h1 class="pg-head__title">Travel Guide</h1>
+    </div>
+    <a class="pg-head__action" href="{{ url_for('guide.create', trip_id=trip.id) }}" title="Add entry">
+      <i class="bi bi-plus" aria-hidden="true"></i>
+    </a>
+  </div>
+
+  {% if has_entries %}
+
+    {% for section_key in section_meta.keys() %}
+      {% if section_key in sections %}
+        {% set meta = section_meta[section_key] %}
+        {% set icon_cls = meta[0] %}
+        {% set label   = meta[1] %}
+        {% set entries = sections[section_key] %}
+
+        <div class="guide-section mb-4">
+          <div class="guide-section-head">
+            <div class="guide-section-icon guide-section-icon--{{ section_key }}">
+              <i class="bi {{ icon_cls }}" aria-hidden="true"></i>
+            </div>
+            <span class="guide-section-label">{{ label }}</span>
+            <span class="guide-section-count">{{ entries | length }}</span>
+          </div>
+
+          <div class="guide-cards">
+            {% for entry in entries %}
+              <div class="guide-card">
+
+                {# --- Card header --- #}
+                <div class="guide-card-header">
+                  <div class="guide-card-title-wrap">
+                    <p class="guide-card-title">{{ entry.title }}</p>
+                    {% if entry.subtitle %}
+                      <p class="guide-card-subtitle">{{ entry.subtitle }}</p>
+                    {% endif %}
+                  </div>
+                  <div class="guide-card-actions">
+                    {% if entry.maps_query %}
+                      <a class="guide-maps-btn"
+                         href="{{ maps_url(entry.maps_query) }}"
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         title="Open in Maps"
+                         aria-label="Open {{ entry.title }} in Maps"
+                         data-haptic="light">
+                        <i class="bi bi-map" aria-hidden="true"></i>
+                      </a>
+                    {% endif %}
+                    <a class="icon-btn" href="{{ url_for('guide.edit', trip_id=trip.id, entry_id=entry.id) }}" title="Edit">
+                      <i class="bi bi-pencil" aria-hidden="true"></i>
+                    </a>
+                    <a class="icon-btn icon-btn--del" href="{{ url_for('guide.delete', trip_id=trip.id, entry_id=entry.id) }}" title="Delete">
+                      <i class="bi bi-trash3" aria-hidden="true"></i>
+                    </a>
+                  </div>
+                </div>
+
+                {# --- Structured detail rows --- #}
+                {% if section_key == 'hotel' %}
+                  {% if entry.detail1 %}
+                    <div class="guide-detail-row">
+                      <i class="bi bi-telephone guide-detail-icon" aria-hidden="true"></i>
+                      <a class="guide-detail-value guide-tel-link" href="tel:{{ entry.detail1 }}">{{ entry.detail1 }}</a>
+                    </div>
+                  {% endif %}
+                  {% if entry.detail2 %}
+                    <div class="guide-detail-row">
+                      <i class="bi bi-box-arrow-in-right guide-detail-icon" aria-hidden="true"></i>
+                      <span class="guide-detail-label">Check-in</span>
+                      <span class="guide-detail-value">{{ entry.detail2 }}</span>
+                    </div>
+                  {% endif %}
+                  {% if entry.detail3 %}
+                    <div class="guide-detail-row">
+                      <i class="bi bi-box-arrow-right guide-detail-icon" aria-hidden="true"></i>
+                      <span class="guide-detail-label">Check-out</span>
+                      <span class="guide-detail-value">{{ entry.detail3 }}</span>
+                    </div>
+                  {% endif %}
+
+                {% elif section_key == 'flight' %}
+                  {% if entry.detail1 %}
+                    <div class="guide-detail-row">
+                      <i class="bi bi-clock guide-detail-icon" aria-hidden="true"></i>
+                      <span class="guide-detail-label">Departure</span>
+                      <span class="guide-detail-value">{{ entry.detail1 }}</span>
+                    </div>
+                  {% endif %}
+                  {% if entry.detail2 %}
+                    <div class="guide-detail-row">
+                      <i class="bi bi-clock-history guide-detail-icon" aria-hidden="true"></i>
+                      <span class="guide-detail-label">Arrival</span>
+                      <span class="guide-detail-value">{{ entry.detail2 }}</span>
+                    </div>
+                  {% endif %}
+                  {% if entry.detail3 %}
+                    <div class="guide-detail-row">
+                      <i class="bi bi-sign-turn-right guide-detail-icon" aria-hidden="true"></i>
+                      <span class="guide-detail-label">Terminal</span>
+                      <span class="guide-detail-value">{{ entry.detail3 }}</span>
+                    </div>
+                  {% endif %}
+
+                {% elif section_key == 'transfer' %}
+                  {% if entry.detail1 %}
+                    <div class="guide-detail-row">
+                      <i class="bi bi-geo-alt guide-detail-icon" aria-hidden="true"></i>
+                      <span class="guide-detail-label">Pickup</span>
+                      <span class="guide-detail-value">{{ entry.detail1 }}</span>
+                      {% if entry.detail1 %}
+                        <a class="guide-maps-inline" href="{{ maps_url(entry.detail1) }}" target="_blank" rel="noopener" title="Map" data-haptic="light">
+                          <i class="bi bi-map" aria-hidden="true"></i>
+                        </a>
+                      {% endif %}
+                    </div>
+                  {% endif %}
+                  {% if entry.detail2 %}
+                    <div class="guide-detail-row">
+                      <i class="bi bi-geo guide-detail-icon" aria-hidden="true"></i>
+                      <span class="guide-detail-label">Drop-off</span>
+                      <span class="guide-detail-value">{{ entry.detail2 }}</span>
+                    </div>
+                  {% endif %}
+                  {% if entry.detail3 %}
+                    <div class="guide-detail-row">
+                      <i class="bi bi-alarm guide-detail-icon" aria-hidden="true"></i>
+                      <span class="guide-detail-label">Report by</span>
+                      <span class="guide-detail-value">{{ entry.detail3 }}</span>
+                    </div>
+                  {% endif %}
+
+                {% elif section_key == 'booking' %}
+                  {% if entry.subtitle %}
+                    <div class="guide-detail-row">
+                      <i class="bi bi-hash guide-detail-icon" aria-hidden="true"></i>
+                      <span class="guide-booking-id" data-copy="{{ entry.subtitle }}">
+                        {{ entry.subtitle }}
+                        <button class="guide-copy-btn" onclick="mthCopy(this, '{{ entry.subtitle | e }}')" aria-label="Copy booking ID">
+                          <i class="bi bi-copy" aria-hidden="true"></i>
+                        </button>
+                      </span>
+                    </div>
+                  {% endif %}
+                  {% if entry.detail1 %}
+                    <div class="guide-detail-row">
+                      <i class="bi bi-check-circle guide-detail-icon" aria-hidden="true"></i>
+                      <span class="guide-detail-label">Confirmation</span>
+                      <span class="guide-booking-id" data-copy="{{ entry.detail1 }}">
+                        {{ entry.detail1 }}
+                        <button class="guide-copy-btn" onclick="mthCopy(this, '{{ entry.detail1 | e }}')" aria-label="Copy confirmation number">
+                          <i class="bi bi-copy" aria-hidden="true"></i>
+                        </button>
+                      </span>
+                    </div>
+                  {% endif %}
+
+                {% elif section_key == 'contact' %}
+                  {% if entry.detail1 %}
+                    <div class="guide-detail-row">
+                      <i class="bi bi-telephone guide-detail-icon" aria-hidden="true"></i>
+                      <a class="guide-detail-value guide-tel-link" href="tel:{{ entry.detail1 }}">{{ entry.detail1 }}</a>
+                    </div>
+                  {% endif %}
+                  {% if entry.detail2 %}
+                    <div class="guide-detail-row">
+                      <i class="bi bi-envelope guide-detail-icon" aria-hidden="true"></i>
+                      <span class="guide-detail-value">{{ entry.detail2 }}</span>
+                    </div>
+                  {% endif %}
+                {% endif %}
+
+                {# --- Body text (notes, rules, etiquette) --- #}
+                {% if entry.body %}
+                  <div class="guide-body preserve-lines">{{ entry.body }}</div>
+                {% endif %}
+
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+      {% endif %}
+    {% endfor %}
+
+  {% else %}
+
+    <div class="page-panel" style="text-align:center;padding:2.5rem 1.25rem;">
+      <i class="bi bi-map" style="font-size:2.5rem;color:rgba(255,255,255,0.15);display:block;margin-bottom:0.875rem;"></i>
+      <p class="fw-semibold mb-1" style="color:rgba(255,255,255,0.5)">No guide entries yet</p>
+      <p class="text-secondary small mb-3">Add hotels, flights, transfers, and important travel notes.</p>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('guide.create', trip_id=trip.id) }}">Add First Entry</a>
+    </div>
+
+  {% endif %}
+
+{% endblock %}

@@ -1,14 +1,29 @@
+from sqlalchemy import text
+
 from app.extensions import db
-from app.models import Document, Expense, ItineraryItem, JournalEntry, ShoppingItem
 
 
 def compute_readiness(trip_id):
-    doc_count = Document.query.filter_by(trip_id=trip_id).count()
-    shopping_total = ShoppingItem.query.filter_by(trip_id=trip_id).count()
-    shopping_completed = ShoppingItem.query.filter_by(trip_id=trip_id, completed=True).count()
-    itinerary_count = ItineraryItem.query.filter_by(trip_id=trip_id).count()
-    expense_count = Expense.query.filter_by(trip_id=trip_id).count()
-    journal_count = JournalEntry.query.filter_by(trip_id=trip_id).count()
+    """Return trip readiness dict using a single correlated-subquery SQL call."""
+    row = db.session.execute(
+        text(
+            "SELECT"
+            " (SELECT COUNT(*) FROM document       WHERE trip_id = :t) AS doc_count,"
+            " (SELECT COUNT(*) FROM shopping_item  WHERE trip_id = :t) AS shop_total,"
+            " (SELECT COUNT(*) FROM shopping_item  WHERE trip_id = :t AND completed = 1) AS shop_done,"
+            " (SELECT COUNT(*) FROM itinerary_item WHERE trip_id = :t) AS itin_count,"
+            " (SELECT COUNT(*) FROM expense        WHERE trip_id = :t) AS exp_count,"
+            " (SELECT COUNT(*) FROM journal_entry  WHERE trip_id = :t) AS jrn_count"
+        ),
+        {"t": trip_id},
+    ).one()
+
+    doc_count          = row.doc_count
+    shopping_total     = row.shop_total
+    shopping_completed = row.shop_done
+    itinerary_count    = row.itin_count
+    expense_count      = row.exp_count
+    journal_count      = row.jrn_count
 
     score = 0
     score += 20 if doc_count > 0 else 0

@@ -1,13 +1,14 @@
 {
   "name": "Mishra Travel Hub",
   "short_name": "Travel Hub",
-  "description": "Family Travel Companion",
+  "description": "Family Travel Companion — trips, itinerary, documents, and memories offline.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#101114",
   "theme_color": "#0d6efd",
   "orientation": "portrait-primary",
+  "categories": ["travel", "lifestyle"],
   "icons": [
     {
       "src": "/static/icons/icon-192.png",
@@ -20,6 +21,22 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Home",
+      "description": "Family travel dashboard",
+      "url": "/",
+      "icons": [{ "src": "/static/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Trips",
+      "short_name": "Trips",
+      "description": "View all trips",
+      "url": "/trips/",
+      "icons": [{ "src": "/static/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

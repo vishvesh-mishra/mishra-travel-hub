@@ -38,11 +38,14 @@
     </div>
   </section>
 
-  {# ====== CHIP NAVIGATION BAR ====== #}
-  <nav class="chip-bar mb-4" aria-label="Trip navigation">
+  {# ====== CHIP NAVIGATION BAR — sticky ====== #}
+  <nav class="chip-bar chip-bar--sticky mb-3" aria-label="Trip navigation">
     <a class="chip" href="{{ url_for('trips.index') }}">← All Trips</a>
     <a class="chip" href="{{ url_for('trips.itinerary', trip_id=trip.id) }}">
       <i class="bi bi-map" aria-hidden="true"></i> Itinerary
+    </a>
+    <a class="chip" href="{{ url_for('guide.for_trip', trip_id=trip.id) }}">
+      <i class="bi bi-compass" aria-hidden="true"></i> Guide
     </a>
     <a class="chip" href="{{ url_for('documents.for_trip', trip_id=trip.id) }}">
       <i class="bi bi-file-earmark-text" aria-hidden="true"></i> Documents
@@ -63,6 +66,29 @@
       <i class="bi bi-trash3" aria-hidden="true"></i>
     </a>
   </nav>
+
+  {# ====== QUICK STATS ROW ====== #}
+  <div class="trip-stats-row mb-3">
+    <div class="tsr-item">
+      <span class="tsr-value">{{ document_count }}</span>
+      <span class="tsr-label">Docs</span>
+    </div>
+    <div class="tsr-divider"></div>
+    <div class="tsr-item">
+      <span class="tsr-value">{{ shopping_completed }}<span style="font-size:0.6875rem;opacity:0.5">/{{ shopping_total }}</span></span>
+      <span class="tsr-label">Packed</span>
+    </div>
+    <div class="tsr-divider"></div>
+    <div class="tsr-item">
+      <span class="tsr-value">${{ "{:.0f}".format(expense_total) }}</span>
+      <span class="tsr-label">Spent</span>
+    </div>
+    <div class="tsr-divider"></div>
+    <div class="tsr-item">
+      <span class="tsr-value">{{ journal_count }}</span>
+      <span class="tsr-label">Memories</span>
+    </div>
+  </div>
 
   {# ====== NEXT UP ====== #}
   {% if next_itinerary_item %}

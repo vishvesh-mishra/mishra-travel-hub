@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% macro field_errors(field) %}
+  {% if field.errors %}
+    <div class="invalid-feedback d-block">{{ field.errors | join(" ") }}</div>
+  {% endif %}
+{% endmacro %}
+
+{% block content %}
+  <div class="pg-head">
+    <a class="pg-head__back" href="{{ url_for('guide.for_trip', trip_id=trip.id) }}" aria-label="Back">
+      <i class="bi bi-chevron-left" aria-hidden="true"></i>
+    </a>
+    <div class="pg-head__body">
+      <p class="pg-head__context">{{ trip.name }} · Travel Guide</p>
+      <h1 class="pg-head__title">{{ form_title }}</h1>
+    </div>
+  </div>
+
+  <form method="post" class="page-panel trip-form" novalidate>
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+      {{ form.section.label(class="form-label") }}
+      {{ form.section(class="form-select" ~ (" is-invalid" if form.section.errors else "")) }}
+      {{ field_errors(form.section) }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.title.label(class="form-label") }}
+      {{ form.title(class="form-control" ~ (" is-invalid" if form.title.errors else ""), autocomplete="off", placeholder="Name or heading") }}
+      {{ field_errors(form.title) }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.subtitle.label(class="form-label") }}
+      {{ form.subtitle(class="form-control" ~ (" is-invalid" if form.subtitle.errors else ""), autocomplete="off", placeholder="Address / route / organisation") }}
+      {{ field_errors(form.subtitle) }}
+    </div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-12 col-sm-6">
+        {{ form.detail1.label(class="form-label") }}
+        {{ form.detail1(class="form-control", autocomplete="off", placeholder="Phone / departure / pickup / ref") }}
+      </div>
+      <div class="col-12 col-sm-6">
+        {{ form.detail2.label(class="form-label") }}
+        {{ form.detail2(class="form-control", autocomplete="off", placeholder="Check-in / arrival / drop-off") }}
+      </div>
+    </div>
+
+    <div class="mb-3">
+      {{ form.detail3.label(class="form-label") }}
+      {{ form.detail3(class="form-control", autocomplete="off", placeholder="Check-out / terminal / reporting time") }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.body.label(class="form-label") }}
+      {{ form.body(class="form-control", rows="6", placeholder="Notes, rules, or etiquette content…") }}
+    </div>
+
+    <div class="mb-3">
+      {{ form.maps_query.label(class="form-label") }}
+      {{ form.maps_query(class="form-control", autocomplete="off", placeholder="e.g. Holiday Inn Times Square, New York") }}
+      <div class="form-text">Leave blank if not a physical location.</div>
+    </div>
+
+    <div class="mb-4">
+      {{ form.sort_order.label(class="form-label") }}
+      {{ form.sort_order(class="form-control", style="max-width:100px", placeholder="0") }}
+    </div>
+
+    <div class="d-flex gap-2">
+      {{ form.submit(class="btn btn-primary btn-sm") }}
+      <a class="btn btn-outline-light btn-sm" href="{{ url_for('guide.for_trip', trip_id=trip.id) }}">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

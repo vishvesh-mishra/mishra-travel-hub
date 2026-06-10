@@ -35,7 +35,7 @@
     <div class="checklist-list">
       {% for item in items %}
         <div class="checklist-row{% if item.completed %} is-done{% endif %}">
-          <form method="post" action="{{ url_for('shopping.toggle', trip_id=trip.id, item_id=item.id) }}" style="display:contents">
+          <form method="post" action="{{ url_for('shopping.toggle', trip_id=trip.id, item_id=item.id) }}" style="display:contents" data-offline-ok>
             {{ toggle_form.hidden_tag() }}
             <button class="checklist-toggle-sm" type="submit" aria-label="{{ 'Mark incomplete' if item.completed else 'Mark complete' }}">
               {% if item.completed %}<i class="bi bi-check-lg" aria-hidden="true"></i>{% endif %}

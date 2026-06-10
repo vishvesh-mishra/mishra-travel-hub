@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="pg-head">
+    <a class="pg-head__back" href="{{ url_for('guide.for_trip', trip_id=trip.id) }}" aria-label="Back">
+      <i class="bi bi-chevron-left" aria-hidden="true"></i>
+    </a>
+    <div class="pg-head__body">
+      <p class="pg-head__context">{{ trip.name }} · Travel Guide</p>
+      <h1 class="pg-head__title">Delete Entry</h1>
+    </div>
+  </div>
+
+  <div class="danger-card">
+    <div class="danger-card__icon"><i class="bi bi-trash3" aria-hidden="true"></i></div>
+    <p class="danger-card__title">Delete this guide entry?</p>
+    <p class="danger-card__item">{{ entry.title }}</p>
+    <p class="danger-card__desc">
+      {{ entry.section | title }}{% if entry.subtitle %} · {{ entry.subtitle }}{% endif %}
+    </p>
+    <form method="post">
+      {{ form.hidden_tag() }}
+      <div class="danger-card__actions">
+        {{ form.submit(class="btn btn-danger btn-sm") }}
+        <a class="btn btn-outline-light btn-sm" href="{{ url_for('guide.for_trip', trip_id=trip.id) }}">Cancel</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}
