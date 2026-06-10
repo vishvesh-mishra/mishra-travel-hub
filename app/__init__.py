@@ -23,9 +23,21 @@ def create_app(config_name=None):
     register_blueprints(app)
     register_before_request(app)
     register_security_headers(app)
+    register_context_processors(app)
     register_commands(app)
 
     return app
+
+
+def register_context_processors(app):
+    @app.context_processor
+    def inject_travel_date():
+        from .utils import get_travel_today
+
+        return {
+            "travel_today_iso": get_travel_today().isoformat(),
+            "travel_timezone": app.config.get("TRAVEL_TIMEZONE", "America/New_York"),
+        }
 
 
 def register_security_headers(app):

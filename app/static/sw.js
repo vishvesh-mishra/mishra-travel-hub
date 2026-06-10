@@ -1,7 +1,7 @@
 // Mishra Travel Hub — Service Worker
 // Phase 9: Offline-first caching with offline session security
 
-const CACHE_VERSION  = 'v9';
+const CACHE_VERSION  = 'v10';
 const STATIC_CACHE   = `mth-static-${CACHE_VERSION}`;
 const PAGES_CACHE    = `mth-pages-${CACHE_VERSION}`;
 const MEDIA_CACHE    = `mth-media-${CACHE_VERSION}`;

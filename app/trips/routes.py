@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import timedelta
 
 from flask import flash, redirect, render_template, url_for
 from sqlalchemy import case, func
@@ -14,7 +14,7 @@ from app.models import (
     TravelGuideEntry,
     Trip,
 )
-from app.utils import compute_readiness
+from app.utils import compute_readiness, get_travel_today
 
 from . import bp
 from .forms import DeleteItineraryItemForm, DeleteTripForm, ItineraryItemForm, TripForm
@@ -22,7 +22,7 @@ from .forms import DeleteItineraryItemForm, DeleteTripForm, ItineraryItemForm, T
 
 @bp.route("/")
 def index():
-    today = date.today()
+    today = get_travel_today()
     trips = Trip.query.order_by(
         case((Trip.start_date >= today, 0), else_=1),
         Trip.start_date.asc(),
@@ -58,7 +58,7 @@ def detail(trip_id):
         flash("Trip not found.", "warning")
         return redirect(url_for("trips.index"))
 
-    today = date.today()
+    today = get_travel_today()
     countdown_days = (trip.start_date - today).days
     duration_days = (trip.end_date - trip.start_date).days + 1
     upcoming_itinerary_items = itinerary_items_query(trip.id).filter(
@@ -173,7 +173,7 @@ def itinerary(trip_id):
         return redirect(url_for("trips.index"))
 
     items = itinerary_items_query(trip.id).all()
-    today = date.today()
+    today = get_travel_today()
     return render_template("trips/itinerary.html", title="Itinerary", trip=trip, items=items, today=today)
 
 

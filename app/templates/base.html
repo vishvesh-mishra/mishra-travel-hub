@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>{{ title ~ " | " if title else "" }}Mishra Travel Hub</title>
     <meta name="theme-color" content="#0d6efd">
+    <meta name="mth-travel-date" content="{{ travel_today_iso }}">
+    <meta name="mth-travel-tz" content="{{ travel_timezone }}">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Travel Hub">
@@ -314,6 +316,38 @@
           }
         });
 
+      }());
+    </script>
+
+    <script>
+      /* ============================================================
+         Date sanity check — detect stale rendered "today"
+         The server stamps the travel date it rendered with; if the
+         browser computes a different date in the same travel timezone
+         while online, the HTML is stale (e.g. PWA resumed past
+         midnight) — reload once to fetch fresh state.
+         ============================================================ */
+      (function () {
+        'use strict';
+        var meta = document.querySelector('meta[name="mth-travel-date"]');
+        var tzMeta = document.querySelector('meta[name="mth-travel-tz"]');
+        if (!meta || !tzMeta || !navigator.onLine) return;
+
+        var rendered = meta.getAttribute('content');
+        var actual;
+        try {
+          // en-CA locale formats as YYYY-MM-DD
+          actual = new Date().toLocaleDateString('en-CA', { timeZone: tzMeta.getAttribute('content') });
+        } catch (_) { return; }
+
+        if (rendered && actual && rendered !== actual) {
+          // One reload per calendar date — guard against loops
+          var guardKey = 'mthDateReload';
+          if (sessionStorage.getItem(guardKey) !== actual) {
+            sessionStorage.setItem(guardKey, actual);
+            window.location.reload();
+          }
+        }
       }());
     </script>
 

@@ -1,9 +1,31 @@
 import os
+from datetime import datetime
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from flask import current_app
 from sqlalchemy import text
 
 from app.extensions import db
+
+FALLBACK_TIMEZONE = "Asia/Kolkata"
+
+
+def _travel_zone():
+    name = current_app.config.get("TRAVEL_TIMEZONE", "America/New_York")
+    try:
+        return ZoneInfo(name)
+    except (ZoneInfoNotFoundError, KeyError, ValueError):
+        return ZoneInfo(FALLBACK_TIMEZONE)
+
+
+def get_travel_now():
+    """Current datetime in the traveler's timezone — never the server clock."""
+    return datetime.now(_travel_zone())
+
+
+def get_travel_today():
+    """Current date in the traveler's timezone (single source of truth)."""
+    return get_travel_now().date()
 
 # Render persistent disk mount (see render.yaml). When present, uploads
 # survive deploys; otherwise fall back to the local static folder in dev.

@@ -12,6 +12,9 @@ class Config:
         f"sqlite:///{BASE_DIR / 'instance' / 'mishra_travel_hub.sqlite'}",
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Traveler's timezone — all "today" / countdown / itinerary logic uses
+    # this, never the server clock (Render runs UTC).
+    TRAVEL_TIMEZONE = os.environ.get("TRAVEL_TIMEZONE", "America/New_York")
 
 
 class DevelopmentConfig(Config):

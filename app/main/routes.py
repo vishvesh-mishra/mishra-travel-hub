@@ -1,4 +1,3 @@
-from datetime import date, datetime
 from types import SimpleNamespace
 
 from flask import current_app, render_template, send_from_directory, url_for
@@ -15,7 +14,7 @@ from app.models import (
     TravelGuideEntry,
     Trip,
 )
-from app.utils import compute_readiness, memory_upload_dir
+from app.utils import compute_readiness, get_travel_now, get_travel_today, memory_upload_dir
 
 from . import bp
 
@@ -80,8 +79,9 @@ def hub():
 
 @bp.route("/today")
 def today_view():
-    today = date.today()
-    now_time = datetime.now().time()
+    travel_now = get_travel_now()
+    today = travel_now.date()
+    now_time = travel_now.time()
 
     # Current trip: active first, else next upcoming
     current_trip = (
@@ -211,8 +211,9 @@ def service_worker():
 
 @bp.route("/")
 def dashboard():
-    today = date.today()
-    current_time = datetime.now().time()
+    travel_now = get_travel_now()
+    today = travel_now.date()
+    current_time = travel_now.time()
 
     active_trips = normalize_trip_rows(trips_with_counts_query().filter(
         Trip.start_date <= today,
@@ -365,7 +366,7 @@ def trips_with_counts_query():
     shopping_remaining = func.count(
         func.distinct(case((ShoppingItem.completed.is_(False), ShoppingItem.id)))
     ).label("shopping_remaining")
-    status_order = case((Trip.start_date >= date.today(), 0), else_=1)
+    status_order = case((Trip.start_date >= get_travel_today(), 0), else_=1)
 
     return (
         db.session.query(
